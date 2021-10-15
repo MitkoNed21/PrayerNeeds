@@ -1,0 +1,9 @@
+<resources>
+    <string name="app_name">Prayer Needs</string>
+    <string name="showPrayerNeedsEnteredToday">Show prayer needs entered today</string>
+    <string name="dateFormat">d MMM;yyyy</string>
+    <string name="title_activity_view_todays_prayer_needs_fullscreen">FullscreenActivity</string>
+    <string name="dummy_button">Dummy Button</string>
+    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="prayerGatheringText">Молитвено събиране</string>
+</resources>

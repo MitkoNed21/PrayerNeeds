@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+  <item
+      android:id="@+id/showPrayerNeedsEnteredToday_mi"
+      android:icon="@drawable/ic_todays_prayer_needs"
+      android:title="@string/showPrayerNeedsEnteredToday"
+      android:visible="false"
+      app:showAsAction="always" />
+  <item
+      android:id="@+id/toggleAnsweredPrayerNeedsVisibility_mi"
+      android:title="Toggle answered prayer needs visibility"
+      android:icon="@drawable/ic_hide_answered_prayer_needs"
+      app:showAsAction="always"/>
+</menu>

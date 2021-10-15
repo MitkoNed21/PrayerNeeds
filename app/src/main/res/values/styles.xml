@@ -1,0 +1,11 @@
+<resources>
+
+    <style name="Widget.Theme.PrayerNeeds.ActionBar.FullScreen" parent="Widget.AppCompat.ActionBar">
+        <item name="android:background">@color/backgroundColor</item>
+    </style>
+
+    <style name="Widget.Theme.PrayerNeeds.ButtonBar.Fullscreen" parent="">
+        <item name="android:background">@color/black_overlay</item>
+        <item name="android:buttonBarStyle">?android:attr/buttonBarStyle</item>
+    </style>
+</resources>
