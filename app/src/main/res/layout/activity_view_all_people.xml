@@ -8,10 +8,10 @@
     android:paddingTop="7dp"
     android:paddingRight="20dp"
     android:paddingBottom="8dp"
-    tools:context=".MainActivity3">
+    tools:context=".activities.AllPeopleActivity">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_names_allPeople"
+        android:id="@+id/rv_allStoredPeople"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"

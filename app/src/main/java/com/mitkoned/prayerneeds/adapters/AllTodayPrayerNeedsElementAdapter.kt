@@ -1,4 +1,4 @@
-package com.mitkoned.prayerneeds
+package com.mitkoned.prayerneeds.adapters
 
 import android.view.LayoutInflater
 import android.view.View
@@ -7,10 +7,9 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.mitkoned.prayerneeds.R
 import org.json.JSONObject
-import java.io.File
 import java.io.FileReader
-import java.lang.IllegalStateException
 import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
@@ -21,7 +20,7 @@ class AllTodayPrayerNeedsElementAdapter (private val fileNames: List<String>)
     private lateinit var dateFormat: DateFormat
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): PersonPrayerNeedsElementViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.all_today_prayer_needs_rv, parent, false)
+        val view = LayoutInflater.from(parent.context).inflate(R.layout.layout__rv_all_todays_prayer_needs, parent, false)
 
         dateFormat = SimpleDateFormat(view.context.applicationContext.getString(R.string.dateFormat), Locale.US)
 
@@ -44,12 +43,14 @@ class AllTodayPrayerNeedsElementAdapter (private val fileNames: List<String>)
             reader = FileReader(fileName)
             inputJsonString = reader.readText()
         } catch (e: Exception) {
-            Toast.makeText(currentView.context, e.stackTrace.joinToString { "\n" }, Toast.LENGTH_SHORT).show()
+            Toast.makeText(currentView.context, e.message.toString(), Toast.LENGTH_SHORT).show()
+            e.printStackTrace()
         } finally {
             try {
                 reader.close()
             } catch (e: Exception) {
-                Toast.makeText(currentView.context, e.stackTrace.joinToString { "\n" }, Toast.LENGTH_SHORT).show()
+                Toast.makeText(currentView.context, e.message.toString(), Toast.LENGTH_SHORT).show()
+                e.printStackTrace()
             }
         }
 
@@ -63,9 +64,6 @@ class AllTodayPrayerNeedsElementAdapter (private val fileNames: List<String>)
         }
 
         currentView.apply {
-
-
-
             val prayerNeedsDescriptionsList = mutableListOf<String>()
             val prayerNeedsDescriptionsAdapter = PrayerNeedDescriptionElementAdapter(prayerNeedsDescriptionsList)
             rvPrayerNeedsDescriptions.adapter = prayerNeedsDescriptionsAdapter

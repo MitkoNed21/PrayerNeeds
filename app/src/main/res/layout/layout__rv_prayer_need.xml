@@ -12,6 +12,7 @@
     android:paddingBottom="0dp">
 
 
+    <!--  TODO: test if background is not needed  -->
     <androidx.constraintlayout.widget.ConstraintLayout
         android:id="@+id/cl_prayerNeedBackground"
         android:layout_width="match_parent"
@@ -70,7 +71,7 @@
         app:layout_constraintTop_toTopOf="parent">
 
         <CheckBox
-            android:id="@+id/cbAnswered"
+            android:id="@+id/cb_answered"
             android:layout_width="37dp"
             android:layout_height="wrap_content"
             android:scaleX="1.2"
@@ -80,7 +81,7 @@
             app:layout_constraintTop_toTopOf="parent" />
 
         <TextView
-            android:id="@+id/tvDesc"
+            android:id="@+id/tv_desc"
             android:layout_width="0dp"
             android:layout_height="wrap_content"
             android:layout_marginEnd="10dp"
@@ -90,7 +91,7 @@
             android:textSize="14sp"
             app:layout_constraintBottom_toBottomOf="parent"
             app:layout_constraintEnd_toStartOf="@+id/linearLayout"
-            app:layout_constraintStart_toEndOf="@+id/cbAnswered"
+            app:layout_constraintStart_toEndOf="@+id/cb_answered"
             app:layout_constraintTop_toTopOf="parent" />
 
         <LinearLayout
@@ -103,7 +104,7 @@
             app:layout_constraintTop_toTopOf="parent">
 
             <TextView
-                android:id="@+id/tvDate"
+                android:id="@+id/tv_date"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="22 Apr"
@@ -112,7 +113,7 @@
                 android:textSize="18sp" />
 
             <TextView
-                android:id="@+id/tvYear"
+                android:id="@+id/tv_year"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="2021"

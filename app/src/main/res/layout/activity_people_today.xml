@@ -8,10 +8,10 @@
     android:paddingTop="7dp"
     android:paddingRight="20dp"
     android:paddingBottom="8dp"
-    tools:context=".MainActivity2">
+    tools:context=".activities.PeopleTodayActivity">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_names"
+        android:id="@+id/rv_namesAddedToday"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"

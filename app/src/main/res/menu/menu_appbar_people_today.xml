@@ -2,17 +2,17 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
   <item
-      android:id="@+id/viewAllNames_mi"
+      android:id="@+id/mi_viewAllNames"
       android:title="@string/showPrayerNeedsEnteredToday"
       android:icon="@drawable/ic_view_all_names"
       app:showAsAction="always"/>
   <item
-      android:id="@+id/showPrayerNeedsEnteredToday_mi"
+      android:id="@+id/mi_showPrayerNeedsEnteredToday"
       android:title="@string/showPrayerNeedsEnteredToday"
       android:icon="@drawable/ic_todays_prayer_needs"
       app:showAsAction="always"/>
   <item
-      android:id="@+id/addName_mi"
+      android:id="@+id/mi_addName"
       android:title="Add name"
       android:icon="@drawable/ic_add_name"
       app:showAsAction="always"/>

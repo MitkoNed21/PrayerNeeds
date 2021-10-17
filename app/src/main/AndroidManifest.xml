@@ -11,16 +11,16 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.PrayerNeeds">
         <activity
-            android:name=".ViewTodaysPrayerNeedsFullscreenActivity"
+            android:name=".activities.ViewTodaysPrayerNeedsFullscreenActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
             android:label="@string/title_activity_view_todays_prayer_needs_fullscreen"
             android:screenOrientation="sensorPortrait"
             android:theme="@style/Theme.PrayerNeeds.Fullscreen" />
         <activity
-            android:name=".MainActivity"
+            android:name=".activities.PrayerNeedsActivity"
             android:screenOrientation="sensorPortrait" />
         <activity
-            android:name=".MainActivity2"
+            android:name=".activities.PeopleTodayActivity"
             android:screenOrientation="sensorPortrait">
             <intent-filter>
                 <action android:name="android.intent.action.MAIN" />
@@ -29,7 +29,7 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".MainActivity3"
+            android:name=".activities.AllPeopleActivity"
             android:screenOrientation="sensorPortrait" />
     </application>
 

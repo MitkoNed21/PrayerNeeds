@@ -3,11 +3,11 @@ package com.mitkoned.prayerneeds
 import android.graphics.*
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
-import android.widget.Toast
 import androidx.annotation.RequiresApi
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
+import com.mitkoned.prayerneeds.adapters.PrayerNeedAdapter
 
 abstract class PrayerNeedSwipeGestures(
         //context: Context,

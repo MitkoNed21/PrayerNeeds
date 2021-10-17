@@ -1,9 +1,7 @@
-package com.mitkoned.prayerneeds
+package com.mitkoned.prayerneeds.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.app.ActionBar
-import android.graphics.Color
-import android.graphics.drawable.ColorDrawable
 import android.os.Build
 import android.os.Bundle
 import android.view.*
@@ -13,8 +11,8 @@ import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat.getDisplay
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import java.io.File
-import java.io.FileReader
+import com.mitkoned.prayerneeds.adapters.AllTodayPrayerNeedsElementAdapter
+import com.mitkoned.prayerneeds.R
 import java.text.SimpleDateFormat
 import java.util.*
 
@@ -25,10 +23,11 @@ import java.util.*
 class ViewTodaysPrayerNeedsFullscreenActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        setContentView(R.layout.activity_view_todays_prayer_needs_fullscreen)
 
         this.title = getString(R.string.prayerGatheringText)
 
-        val appBarLayout = LayoutInflater.from(this).inflate(R.layout.all_prayer_needs_top_bar_layout, null)
+        val appBarLayout = LayoutInflater.from(this).inflate(R.layout.layout__top_bar_all_prayer_needs, null)
         supportActionBar?.apply {
             setDisplayShowCustomEnabled(true)
             setDisplayShowTitleEnabled(false)
@@ -53,13 +52,14 @@ class ViewTodaysPrayerNeedsFullscreenActivity : AppCompatActivity() {
 
             val fileNames = namesAddedToday.map { "${filesDir.path}/$it.json" }
 
-            val rvPrayerNeeds = this.findViewById<RecyclerView>(R.id.rv_prayerNeeds)
+            val rvPrayerNeeds = this.findViewById<RecyclerView>(R.id.rv_prayerNeedsToday)
             val adapter = AllTodayPrayerNeedsElementAdapter(fileNames)
             rvPrayerNeeds.adapter = adapter
             rvPrayerNeeds.layoutManager = LinearLayoutManager(this)
         } catch (e: Exception) {
             Toast.makeText(this, "TEST", Toast.LENGTH_SHORT).show()
-            Toast.makeText(this, e.stackTrace.joinToString { "\n" }, Toast.LENGTH_LONG).show()
+            Toast.makeText(this, e.message.toString(), Toast.LENGTH_LONG).show()
+            e.printStackTrace()
         }
     }
 

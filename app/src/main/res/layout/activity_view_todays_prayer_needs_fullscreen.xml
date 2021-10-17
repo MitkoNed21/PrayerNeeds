@@ -5,10 +5,10 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:background="@color/black"
-    tools:context=".ViewTodaysPrayerNeedsFullscreenActivity">
+    tools:context=".activities.ViewTodaysPrayerNeedsFullscreenActivity">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_prayerNeeds"
+        android:id="@+id/rv_prayerNeedsToday"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginHorizontal="20dp"

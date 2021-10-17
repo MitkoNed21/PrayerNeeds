@@ -1,45 +1,47 @@
-package com.mitkoned.prayerneeds
+package com.mitkoned.prayerneeds.activities
 
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Typeface
-import android.graphics.drawable.ColorDrawable
 import android.icu.util.Calendar
-import android.opengl.Visibility
 import android.os.Bundle
 import android.view.Menu
 import android.view.MenuItem
 import android.view.View
 import android.view.ViewGroup
 import android.widget.Button
+import android.widget.EditText
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
 import androidx.constraintlayout.widget.ConstraintLayout
-import androidx.core.view.get
-import androidx.core.view.marginLeft
-import androidx.core.view.setPadding
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.mitkoned.prayerneeds.PrayerNeed
+import com.mitkoned.prayerneeds.adapters.PrayerNeedAdapter
+import com.mitkoned.prayerneeds.PrayerNeedSwipeGestures
+import com.mitkoned.prayerneeds.R
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.FileReader
 import java.io.FileWriter
-import java.text.DateFormat
 import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.properties.Delegates
 
-class MainActivity : AppCompatActivity() {
+class PrayerNeedsActivity : AppCompatActivity() {
     private var requestedNameIndex by Delegates.notNull<Int>()
 
     private lateinit var namesAddedToday: Array<String>
     private lateinit var fileName: String
-    private lateinit var dateFormat: DateFormat
-    private val hidingAnsweredPrayerNeeds = BoxedBoolean(false)
+    private val dateFormat: SimpleDateFormat by lazy {
+        SimpleDateFormat(getString(R.string.dateFormat), Locale.US)
+    }
+    // Maybe convert back to BoxedBoolean
+    private var hidingAnsweredPrayerNeeds = false
 
     private val dataPrayerNeedsList = mutableListOf<PrayerNeed>()
     private val viewPrayerNeedsList = mutableListOf<PrayerNeed>()
@@ -63,12 +65,14 @@ class MainActivity : AppCompatActivity() {
             writer.write(resultString)
         } catch (e: Exception) {
             Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+            e.printStackTrace()
         } finally {
             try {
                 writer.flush()
                 writer.close()
             } catch (e: Exception) {
                 Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+                e.printStackTrace()
             }
         }
     }
@@ -93,51 +97,48 @@ class MainActivity : AppCompatActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
-        setContentView(R.layout.activity_main)
+        setContentView(R.layout.activity_prayer_needs)
 
-        val addButton = this.findViewById<Button>(R.id.addButton)
-        val rvMain = this.findViewById<RecyclerView>(R.id.rvMain)
-        val addText = this.findViewById<TextView>(R.id.addText)
+        val addButton = this.findViewById<Button>(R.id.btn_addPrayerNeed)
+        val rvPrayerNeeds = this.findViewById<RecyclerView>(R.id.rv_prayerNeeds)
+        val etPrayerNeedsText = this.findViewById<EditText>(R.id.et_prayerNeedsText)
 
         val swipeGestures = object: PrayerNeedSwipeGestures(0, ItemTouchHelper.RIGHT) {
-            private lateinit var tempAddTextValue: String
+            //private lateinit var tempAddTextValue: String
 
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                tempAddTextValue = addText.text.toString()
+                val tempAddTextValue = etPrayerNeedsText.text.toString()
 
                 val itemPos = viewHolder.layoutPosition
 
-                val parent = addText.parent as ConstraintLayout
-                val layoutParams = addText.layoutParams
+                val etPrayerNeedsTextParent = etPrayerNeedsText.parent as ConstraintLayout
+                val layoutParams = etPrayerNeedsText.layoutParams
 
-                parent.removeView(addText)
+                etPrayerNeedsTextParent.removeView(etPrayerNeedsText)
                 addButton.visibility = View.INVISIBLE
 
-                AlertDialog.Builder(this@MainActivity)
-                        .setPositiveButton("Save") { _, _ ->
-                            savePrayerNeed(itemPos, addText, rvMain)
+                AlertDialog.Builder(this@PrayerNeedsActivity)
+                    .setPositiveButton("Save") { _, _ ->
+                        savePrayerNeed(itemPos, etPrayerNeedsText, rvPrayerNeeds)
+                    }
+                    .setTitle("Edit")
+                    .setOnDismissListener {
+                        (etPrayerNeedsText.parent as ViewGroup).removeView(etPrayerNeedsText)
+                        etPrayerNeedsTextParent.addView(etPrayerNeedsText, layoutParams)
+                        addButton.visibility = View.VISIBLE
+                        etPrayerNeedsText.setText(tempAddTextValue)
+                    }
+                    .setIcon(getDrawable(R.drawable.ic_edit_prayer_need))
+                    .setView(etPrayerNeedsText.apply {
+                        this.setText(viewPrayerNeedsList[itemPos].description)
+                    }).create().apply {
+                        setOnShowListener {
+                            (etPrayerNeedsText.parent as ViewGroup).setPadding(20, 48, 20, 16)
                         }
-                        .setTitle("Edit")
-                        .setOnDismissListener {
-                            (addText.parent as ViewGroup).removeView(addText)
-                            parent.addView(addText, layoutParams)
+                        show()
+                    }
 
-                            addButton.visibility = View.VISIBLE
-
-                            addText.text = tempAddTextValue
-                        }
-                        .setIcon(getDrawable(R.drawable.ic_edit_prayer_need))
-                        .setView(addText.apply {
-                            text = viewPrayerNeedsList[itemPos].description
-                        }).create().apply {
-                            setOnShowListener {
-
-                                (addText.parent as ViewGroup).setPadding(20, 48, 20, 16)
-                            }
-                            show()
-                        }
-
-                rvMain.adapter?.notifyItemChanged(itemPos)
+                rvPrayerNeeds.adapter?.notifyItemChanged(itemPos)
                 //addText.text = viewPrayerNeedsList[itemPos].description
 
 
@@ -151,11 +152,10 @@ class MainActivity : AppCompatActivity() {
 //        }
 
         val adapter = PrayerNeedAdapter(viewPrayerNeedsList, hidingAnsweredPrayerNeeds)
-        rvMain.adapter = adapter
-        rvMain.layoutManager = LinearLayoutManager(this)
-        ItemTouchHelper(swipeGestures).attachToRecyclerView(rvMain)
 
-        dateFormat = SimpleDateFormat(getString(R.string.dateFormat), Locale.US)
+        rvPrayerNeeds.adapter = adapter
+        rvPrayerNeeds.layoutManager = LinearLayoutManager(this)
+        ItemTouchHelper(swipeGestures).attachToRecyclerView(rvPrayerNeeds)
 
         //TODO: Pass index and list, so that next and previous implemented
         requestedNameIndex = intent.getIntExtra("requestedNameIndex", -1)
@@ -169,6 +169,7 @@ class MainActivity : AppCompatActivity() {
         // Activity invoked without requested name, create a dialog to add a name
         val requestedName = namesAddedToday[requestedNameIndex]
 
+        // TODO: make val? not required to be changed, and shouldn't be changed
         fileName = filesDir.path + "/" + requestedName + ".json"
 
         //lateinit var reader: FileInputStream
@@ -179,12 +180,15 @@ class MainActivity : AppCompatActivity() {
             reader = FileReader(fileName)
             inputJsonString = reader.readText()
         } catch (e: Exception) {
-            Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show()
+            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+            e.printStackTrace()
         } finally {
             try {
                 reader.close()
             } catch (e: Exception) {
-                Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show()
+                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+                e.printStackTrace()
+                finish()
             }
         }
 
@@ -207,13 +211,11 @@ class MainActivity : AppCompatActivity() {
                         val description = currentObject.getString("description")
                         val answered = currentObject.getBoolean("answered")
 
-                        if (description.contains("Prayer Needs")) continue
-
                         val loadedPrayerNeed = PrayerNeed(
-                                description = description,
-                                date = date,
-                                year = year,
-                                answered = answered
+                            description = description,
+                            date = date,
+                            year = year,
+                            answered = answered
                         )
 
                         dataPrayerNeedsList.add(loadedPrayerNeed)
@@ -225,22 +227,24 @@ class MainActivity : AppCompatActivity() {
                 }
             } catch (e: Exception) {
                 Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+                e.printStackTrace()
             }
-        }
 
-        rvMain.addItemDecoration(object : DividerItemDecoration(rvMain.context, DividerItemDecoration.VERTICAL) {
-            val color = Color.parseColor("#391561")
+            rvPrayerNeeds.addItemDecoration(object : DividerItemDecoration(rvPrayerNeeds.context, DividerItemDecoration.VERTICAL) {
+                val color = Color.parseColor("#391561")
 
-            override fun onDraw(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
-                c.drawColor(color)
-                super.onDraw(c, parent, state)
+                override fun onDraw(c: Canvas, parent: RecyclerView, state: RecyclerView.State) {
+                    c.drawColor(color)
+                    super.onDraw(c, parent, state)
+                }
+            }).run {
+                // TODO: viewPrayerNeedsList as index should work.
+                rvPrayerNeeds.removeItemDecorationAt(rvPrayerNeeds.itemDecorationCount - 1)
             }
-        }).run {
-            rvMain.removeItemDecorationAt(rvMain.itemDecorationCount - 1)
         }
 
         addButton.setOnClickListener {
-            addPrayerNeed(addText, rvMain)
+            addPrayerNeed(etPrayerNeedsText, rvPrayerNeeds)
         }
     }
 
@@ -291,31 +295,32 @@ class MainActivity : AppCompatActivity() {
     }
 
     override fun onCreateOptionsMenu(menu: Menu?): Boolean {
-        val appBarLayout = View.inflate(this, R.layout.all_prayer_needs_top_bar_layout, null)
+        val appBarLayout = View.inflate(this, R.layout.layout__top_bar_all_prayer_needs, null)
 
         supportActionBar?.apply {
             setDisplayShowCustomEnabled(true)
             setDisplayShowTitleEnabled(false)
 
             appBarLayout.layoutParams = ConstraintLayout.LayoutParams(
-                    ConstraintLayout.LayoutParams.MATCH_PARENT,
-                    ConstraintLayout.LayoutParams.WRAP_CONTENT
+                ConstraintLayout.LayoutParams.MATCH_PARENT,
+                ConstraintLayout.LayoutParams.WRAP_CONTENT
             )
             customView = appBarLayout
         }
 
         appBarLayout.apply {
             findViewById<TextView>(R.id.tv_title).apply {
-                text = this@MainActivity.title
+                text = this@PrayerNeedsActivity.title
                 textSize = 26f
                 typeface = Typeface.defaultFromStyle(Typeface.BOLD)
             }
+            // TODO: Try .visibility = View.GONE
             findViewById<TextView>(R.id.tv_currentDate).text = ""
         }
 
         this.supportActionBar?.customView = appBarLayout
 
-        menuInflater.inflate(R.menu.person_prayer_needs_app_bar_menu, menu)
+        menuInflater.inflate(R.menu.menu_appbar_person_prayerneeds, menu)
         //this.setFeatureDrawable() <- research
 
         return true
@@ -323,10 +328,10 @@ class MainActivity : AppCompatActivity() {
 
     override fun onOptionsItemSelected(item: MenuItem): Boolean {
         when (item.itemId) {
-            R.id.toggleAnsweredPrayerNeedsVisibility_mi -> {
-                val adapter = this.findViewById<RecyclerView>(R.id.rvMain).adapter!!
+            R.id.mi_toggleAnsweredPrayerNeedsVisibility -> {
+                val adapter = this.findViewById<RecyclerView>(R.id.rv_prayerNeeds).adapter!!
 
-                if (hidingAnsweredPrayerNeeds.value) {
+                if (hidingAnsweredPrayerNeeds) {
                     item.icon = getDrawable(R.drawable.ic_hide_answered_prayer_needs)
 
                     for ((index, pn) in dataPrayerNeedsList.withIndex()) {
@@ -336,7 +341,7 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
 
-                    hidingAnsweredPrayerNeeds.value = false
+                    hidingAnsweredPrayerNeeds = false
                 } else {
                     item.icon = getDrawable(R.drawable.ic_show_answered_prayer_needs)
 
@@ -347,98 +352,11 @@ class MainActivity : AppCompatActivity() {
                         }
                     }
 
-                    hidingAnsweredPrayerNeeds.value = true
+                    hidingAnsweredPrayerNeeds = true
                 }
-
-
             }
         }
 
         return true
     }
 }
-
-/*
-val result = LIS(arrayOf(0, 8, 4, 5, 9, 3, 12, 8, 2, 15))
-                val result2 = LIS(arrayOf(0, -1, 0, 8, 4, 5, 9, 3, 12, 8, 2, 15))
-
-                // result should be:
-                //  0 4 5 8 15
-                //  0 4 5 12 15
-                //  0 4 5 9 12 15 <- 6
-                //  0 8 9 12 15
-
-                // result2 should be:
-                //  -1 0 4 5 9 12 15 <- 7
-
-                Toast.makeText(this, result.joinToString(" "), Toast.LENGTH_SHORT).show()
-                Toast.makeText(this, result2.joinToString(" "), Toast.LENGTH_SHORT).show()
-
-fun LIS(nums: Array<Int>): List<Int> {
-        val result = mutableListOf(nums[0])
-        val tempResult = mutableListOf<Int>()
-
-        for (currentIndex in 0 until nums.size) {
-            if (nums.lastIndex - currentIndex < result.size) break
-
-            tempResult.add(nums[currentIndex])
-            var start = currentIndex + 1
-
-            while (true) {
-                for (index in start until nums.size) {
-                    if (tempResult.last() < nums[index]) {
-                        tempResult.add(nums[index])
-                        if (result.size < tempResult.size) {
-                            result.clear()
-                            result.addAll(tempResult)
-                        }
-                    }
-                }
-
-                if (tempResult.size > 1) {
-                    if (nums[nums.indexOf(tempResult.last())] == nums.last()) {
-                        tempResult.removeAt(tempResult.lastIndex)
-                    }
-
-                    start = nums.indexOf(tempResult.last()) + 1
-                    tempResult.removeAt(tempResult.lastIndex)
-                } else {
-                    break
-                }
-            }
-
-            tempResult.clear()
-        }
-        return result
-        }*/
-
-/*fun knapsackProblem(capacity: Int, maxItems: Int, items: Array<Item>): Int {
-        val results: Array<Item> = arrayOf()
-        val itemsWeight = items.sortBy { i -> i.weight }
-        val itemsPrice = items.sortBy { i -> i.price }
-
-
-        for ((index, _) in (0 until maxItems).withIndex()) {
-
-            for ((index2, _) in (0 until maxItems).withIndex()) {
-
-
-            }
-        }
-
-        for ((index, _) in (0 until maxItems).withIndex()) {
-            results[index] = arrayOf<Int>()
-            for ((index2, _) in (0 until maxItems).withIndex()) {
-                results[index][index2] = 0
-            }
-        }
-
-        for ((index, _) in (0 until maxItems).withIndex()) {
-            for ((index2, _) in (0 until maxItems).withIndex()) {
-
-
-            }
-        }
-    }
-
-    public inner class Item (val weight: Int, val price: Int)*/

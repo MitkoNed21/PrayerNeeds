@@ -12,7 +12,7 @@
     android:scrollbarSize="8dp">
 
     <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_addedNames"
+        android:id="@+id/rv_storedNames"
         android:layout_width="0dp"
         android:layout_height="215dp"
         android:scrollbarAlwaysDrawVerticalTrack="false"
@@ -28,10 +28,10 @@
         android:completionThreshold="1"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rv_addedNames" />
+        app:layout_constraintTop_toBottomOf="@+id/rv_storedNames" />
 
     <EditText
-        android:id="@+id/et_name"
+        android:id="@+id/et_nameToAdd"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:layout_marginTop="10dp"
@@ -41,5 +41,5 @@
         android:maxLength="50"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rv_addedNames" />
+        app:layout_constraintTop_toBottomOf="@+id/rv_storedNames" />
 </androidx.constraintlayout.widget.ConstraintLayout>
