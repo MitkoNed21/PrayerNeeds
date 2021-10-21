@@ -1,5 +1,6 @@
 package com.mitkoned.prayerneeds.activities
 
+import android.content.Context
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Typeface
@@ -15,20 +16,19 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
 import androidx.appcompat.app.AppCompatActivity
+import androidx.appcompat.content.res.AppCompatResources
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.mitkoned.prayerneeds.PrayerNeed
+import com.mitkoned.prayerneeds.*
 import com.mitkoned.prayerneeds.adapters.PrayerNeedAdapter
-import com.mitkoned.prayerneeds.PrayerNeedSwipeGestures
-import com.mitkoned.prayerneeds.R
 import org.json.JSONArray
 import org.json.JSONObject
-import java.io.FileReader
-import java.io.FileWriter
+import java.io.File
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.util.*
 import kotlin.properties.Delegates
 
@@ -58,21 +58,22 @@ class PrayerNeedsActivity : AppCompatActivity() {
     }
 
     private fun saveFile() {
-        lateinit var writer: FileWriter
+        var errored = false
+
         try {
-            writer = FileWriter(fileName, false)
             val resultString = convertPrayerNeedsListToJson()
-            writer.write(resultString)
+            writeFile(fileName, resultString, false)
         } catch (e: Exception) {
             Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
             e.printStackTrace()
-        } finally {
-            try {
-                writer.flush()
-                writer.close()
-            } catch (e: Exception) {
-                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
-                e.printStackTrace()
+            errored = true
+        }
+
+        if (!errored) {
+            val prefs = getSharedPreferences(getString(R.string.lastUpdatedPrayerNeedsData), Context.MODE_PRIVATE)
+            with (prefs.edit()) {
+                putString("lastUpdatedPrayerNeedsData", Instant.now().toString())
+                apply()
             }
         }
     }
@@ -119,7 +120,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
 
                 AlertDialog.Builder(this@PrayerNeedsActivity)
                     .setPositiveButton("Save") { _, _ ->
-                        savePrayerNeed(itemPos, etPrayerNeedsText, rvPrayerNeeds)
+                        saveEditedPrayerNeed(itemPos, etPrayerNeedsText, rvPrayerNeeds)
                     }
                     .setTitle("Edit")
                     .setOnDismissListener {
@@ -172,31 +173,14 @@ class PrayerNeedsActivity : AppCompatActivity() {
         // TODO: make val? not required to be changed, and shouldn't be changed
         fileName = filesDir.path + "/" + requestedName + ".json"
 
-        //lateinit var reader: FileInputStream
-        lateinit var reader: FileReader
-        lateinit var inputJsonString: String
-
-        try {
-            reader = FileReader(fileName)
-            inputJsonString = reader.readText()
-        } catch (e: Exception) {
-            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
-            e.printStackTrace()
-        } finally {
-            try {
-                reader.close()
-            } catch (e: Exception) {
-                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
-                e.printStackTrace()
-                finish()
-            }
-        }
-
         this.title = requestedName
 
-//        if (JsonReader(StringReader(inputJsonString)).hasNext())
-        if (inputJsonString != "") {
-            try {
+        try {
+            //lateinit var reader: FileInputStream
+            val inputJsonString = readFile(File(fileName))
+
+            //if (JsonReader(StringReader(inputJsonString)).hasNext())
+            if (inputJsonString != null && inputJsonString != "") {
                 val jsonObject = JSONObject(inputJsonString)
 
                 if (jsonObject.has("prayerNeeds")) {
@@ -225,9 +209,6 @@ class PrayerNeedsActivity : AppCompatActivity() {
                         adapter.notifyItemInserted(viewPrayerNeedsList.size - 1)
                     }
                 }
-            } catch (e: Exception) {
-                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
-                e.printStackTrace()
             }
 
             rvPrayerNeeds.addItemDecoration(object : DividerItemDecoration(rvPrayerNeeds.context, DividerItemDecoration.VERTICAL) {
@@ -241,6 +222,11 @@ class PrayerNeedsActivity : AppCompatActivity() {
                 // TODO: viewPrayerNeedsList as index should work.
                 rvPrayerNeeds.removeItemDecorationAt(rvPrayerNeeds.itemDecorationCount - 1)
             }
+        } catch (e: Exception) {
+            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, "Could not load prayer needs for $requestedName", Toast.LENGTH_SHORT).show()
+            e.printStackTrace()
+            finish()
         }
 
         addButton.setOnClickListener {
@@ -256,7 +242,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
         super.onPostCreate(savedInstanceState)
     }
 
-    private fun savePrayerNeed(itemPosition: Int, etView: TextView, rvMain: RecyclerView) {
+    private fun saveEditedPrayerNeed(itemPosition: Int, etView: TextView, rvMain: RecyclerView) {
         val enteredText = etView.text.trim().toString()
         if (enteredText == "") return
 
@@ -274,13 +260,8 @@ class PrayerNeedsActivity : AppCompatActivity() {
         if (enteredText == "") return
 
         val desc = enteredText.replace(Regex("(?<![A-Za-z0-9А-Яа-я_])й(?![A-Za-z0-9А-Яа-я_])"), "ѝ")
-        //Toast.makeText(this, desc, Toast.LENGTH_SHORT).show()
 
         val currentDate = Calendar.getInstance().time
-//            val year = currentDate.get(Calendar.YEAR)
-//            val month = currentDate.get(Calendar.MONTH)
-//            val day = currentDate.get(Calendar.DAY_OF_MONTH)
-//            Toast.makeText(this, "$year $month $day", Toast.LENGTH_SHORT).show()
 
         val formattedCurrentDate = dateFormat.format(currentDate)
         val dateParts = formattedCurrentDate.split(';')
@@ -332,7 +313,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
                 val adapter = this.findViewById<RecyclerView>(R.id.rv_prayerNeeds).adapter!!
 
                 if (hidingAnsweredPrayerNeeds) {
-                    item.icon = getDrawable(R.drawable.ic_hide_answered_prayer_needs)
+                    item.icon = AppCompatResources.getDrawable(this, R.drawable.ic_hide_answered_prayer_needs)
 
                     for ((index, pn) in dataPrayerNeedsList.withIndex()) {
                         if (pn.answered) {
@@ -343,7 +324,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
 
                     hidingAnsweredPrayerNeeds = false
                 } else {
-                    item.icon = getDrawable(R.drawable.ic_show_answered_prayer_needs)
+                    item.icon = AppCompatResources.getDrawable(this, R.drawable.ic_show_answered_prayer_needs)
 
                     for (index in dataPrayerNeedsList.lastIndex downTo 0) {
                         if (dataPrayerNeedsList[index].answered) {

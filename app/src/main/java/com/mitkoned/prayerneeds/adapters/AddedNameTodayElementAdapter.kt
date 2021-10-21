@@ -35,6 +35,40 @@ class AddedNameTodayElementAdapter (private val names: MutableList<String>)
 
             val btName = currentView.findViewById<Button>(R.id.bt_nameContainer)
 
+            btName.setOnLongClickListener {
+
+                AlertDialog.Builder(currentView.context)
+                    .setTitle("Remove person")
+                    .setPositiveButton("Yes") { _, _ ->
+                        val adapterPosition = holder.adapterPosition
+                        val removedName = names.removeAt(adapterPosition)
+                        this.notifyItemRemoved(adapterPosition)
+
+                        Snackbar.make(
+                            //try this .rootView
+                            // old
+                                currentView.parent as RecyclerView,
+                                removedName + " was removed.",
+                                Snackbar.LENGTH_LONG)
+                            .setAction("Undo") { // on click listener // TODO: if names doesn't contain the name.
+                                names.add(adapterPosition, removedName)
+                                this.notifyItemInserted(adapterPosition)
+                            }
+                            //.setBackgroundTintList(Color.parseColor("#808080"))
+                            // TODO: Make a layout for the Snackbar
+                            .setBackgroundTint(Color.parseColor("#808080"))
+                            .setActionTextColor(Color.parseColor("#F0F0F0"))
+                            .setTextColor(Color.parseColor("#F0F0F0"))
+                            .show()
+                    }
+                    .setCancelable(true)
+                    .setMessage("Do you want to remove ${names[holder.adapterPosition]} from today?")
+                    .create()
+                    .show()
+
+                return@setOnLongClickListener true
+            }
+
             btName.setOnClickListener {
                 try {
                     val intent = Intent(btName.rootView.context, PrayerNeedsActivity::class.java).apply {

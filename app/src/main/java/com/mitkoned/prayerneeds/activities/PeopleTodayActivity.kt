@@ -1,22 +1,31 @@
 package com.mitkoned.prayerneeds.activities
 
-import android.content.Intent
+import android.app.DownloadManager
+import android.app.ProgressDialog
+import android.content.*
+import android.graphics.Color
+import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
-import android.view.LayoutInflater
-import android.view.Menu
-import android.view.MenuItem
-import android.view.MotionEvent
+import android.view.*
 import android.widget.*
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
+import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.net.toUri
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.behavior.SwipeDismissBehavior
+import com.google.android.material.snackbar.BaseTransientBottomBar
+import com.google.android.material.snackbar.Snackbar
 import com.mitkoned.prayerneeds.*
 import com.mitkoned.prayerneeds.adapters.AddNameDialogElementAdapter
 import com.mitkoned.prayerneeds.adapters.AddedNameTodayElementAdapter
+import org.json.JSONArray
 import org.json.JSONObject
 import java.io.*
 import java.text.SimpleDateFormat
+import java.time.Instant
 import java.util.*
 
 class PeopleTodayActivity : AppCompatActivity() {
@@ -31,6 +40,73 @@ class PeopleTodayActivity : AppCompatActivity() {
         SimpleDateFormat(getString(R.string.dateFormat), Locale.US)
     }
 
+    private lateinit var crdlSnackbar: CoordinatorLayout
+
+    //private lateinit var prayerNeedsExportPath: String
+    private val openFileActivityLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val uri = result.data?.data
+
+            if (uri != null) { //Try to use StartActivityForResult() and .launch(intent) {Intent.ACTION_GET_CONTENT, data: MIME_TYPE} if bringing choosing
+                var fileContents = "" //TODO: change to lateinit var
+                try {
+                    contentResolver.openInputStream(uri)?.apply {
+                        fileContents = readBytes().decodeToString()
+                        close()
+                    }
+                } catch (e: Exception) {
+                    Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+                    e.printStackTrace()
+                    return@registerForActivityResult
+                }
+
+                storePrayerNeedsFromFileContents(fileContents)
+            }
+        }
+    }
+//    private val openFileActivityLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
+//        if (uri != null) { //Try to use StartActivityForResult() and .launch(intent) {Intent.ACTION_GET_CONTENT, data: MIME_TYPE} if bringing choosing
+//            var fileContents = "" //TODO: change to lateinit var
+//            try {
+//                contentResolver.openInputStream(uri)?.apply {
+//                    fileContents = readBytes().decodeToString()
+//                    close()
+//                }
+//            } catch (e: Exception) {
+//                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+//                e.printStackTrace()
+//                return@registerForActivityResult
+//            }
+//
+//            storePrayerNeedsFromFileContents(fileContents)
+//        }
+//    }
+
+
+    /*private val selectExportFolderActivityLauncher = registerForActivityResult(
+        ActivityResultContracts.OpenDocumentTree()
+    ) { resultUri ->
+        val resultPath = resultUri.path
+        if (resultPath != null) {
+            //prayerNeedsExportPath = resultPath
+            val exportFile = File(prayerNeedsExportPath)
+
+            try {
+                val userFile = File(resultPath + "/" + exportFile.name)
+                if (userFile.createNewFile()) {
+                    exportFile.copyTo(userFile, false)
+                } else {
+                    Toast.makeText(this, "File $exportFile already exists in directory!", Toast.LENGTH_LONG).show()
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+                e.printStackTrace()
+            }
+        }
+    }*/
+
     val items = mutableMapOf<String, MutableList<PrayerNeed>>()
 
     fun prayerNeedToJson(prayerNeed: PrayerNeed) : JSONObject {
@@ -44,34 +120,22 @@ class PeopleTodayActivity : AppCompatActivity() {
         return result
     }
 
+    override fun onDestroy() {
+        openFileActivityLauncher.unregister()
+        super.onDestroy()
+    }
+
     private fun saveNamesAddedTodayFile() {
         if (namesAddedToday.size == 0) {
             return
         }
 
-        lateinit var writer: FileWriter
-        try {
-            namesAddedTodayFile.createNewFile()
-            writer = FileWriter(namesAddedTodayFile.path, false)
+        val result = StringBuilder()
+        result.append(dateFormat.format(Calendar.getInstance()/*.apply{ this.set(Calendar.DAY_OF_MONTH, 26) }*/.time))
+        result.append("|")
+        result.append(namesAddedToday.joinToString(", "))
 
-            val result = StringBuilder()
-            result.append(dateFormat.format(Calendar.getInstance()/*.apply{ this.set(Calendar.DAY_OF_MONTH, 26) }*/.time))
-            result.append("|")
-            result.append(namesAddedToday.joinToString(", "))
-
-            writer.write(result.toString())
-        } catch (e: Exception) {
-            Toast.makeText(this, e.message.toString(), Toast.LENGTH_LONG).show()
-            e.printStackTrace()
-        } finally {
-            try {
-                writer.flush()
-                writer.close()
-            } catch (e: Exception) {
-                Toast.makeText(this, e.message.toString(), Toast.LENGTH_LONG).show()
-                e.printStackTrace()
-            }
-        }
+        writeFile(namesAddedTodayFile, result.toString(), false)
     }
 
     private fun switchDataDirectories(s: String) {
@@ -107,7 +171,7 @@ class PeopleTodayActivity : AppCompatActivity() {
         }
     }
 
-    @ExperimentalStdlibApi
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_people_today)
@@ -123,47 +187,34 @@ class PeopleTodayActivity : AppCompatActivity() {
 
         return
         // */
+        namesAddedTodayFile = File(filesDir.path + "/today.txt")
+        if (!namesAddedTodayFile.exists()) {
+            namesAddedTodayFile.createNewFile()
 
+            Toast.makeText(this, "FILE NOT FOUND", Toast.LENGTH_SHORT).show()
+        } else {
+            Toast.makeText(this, "FILE FOUND", Toast.LENGTH_SHORT).show()
+        }
 
-        lateinit var reader: FileReader
         try {
-            namesAddedTodayFile = File(filesDir.path + "/today.txt")
+            val input = readFile(namesAddedTodayFile)
+            if (input != null && input != "")
+            {
+                val inputParts = input.split('|')
 
-            if (!namesAddedTodayFile.exists()) {
-                namesAddedTodayFile.createNewFile()
+                val dateString = inputParts[0]
+                val names = inputParts[1].split(", ")
+                val currentDateString = dateFormat.format(Calendar.getInstance().time)
 
-                Toast.makeText(this, "FILE NOT FOUND", Toast.LENGTH_SHORT).show()
-            } else {
-                Toast.makeText(this, "FILE FOUND", Toast.LENGTH_SHORT).show()
-                reader = FileReader(namesAddedTodayFile.path)
-
-                val input = reader.readText()
-                if (input != "")
-                {
-                    val inputParts = input.split('|')
-
-                    val dateString = inputParts[0]
-                    val names = inputParts[1].split(", ")
-                    val currentDateString = dateFormat.format(Calendar.getInstance().time)
-
-                    if (dateString == currentDateString) {
-                        namesAddedToday.addAll(names)
-                    } /*else {
-                        namesAddedTodayFile.delete()
-                    }*/
-                }
+                if (dateString == currentDateString) {
+                    namesAddedToday.addAll(names)
+                } /*else {
+                    namesAddedTodayFile.delete()
+                }*/
             }
         } catch (e: Exception) {
-            Toast.makeText(this, e.message.toString(), Toast.LENGTH_LONG).show()
+            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
             e.printStackTrace()
-        } finally {
-            try {
-                //if (reader != null && reader.ready())
-                    reader.close()
-            } catch (e: Exception) {
-                Toast.makeText(this, e.message.toString(), Toast.LENGTH_LONG).show()
-                e.printStackTrace()
-            }
         }
 
         //val parse = dateFormat.parse(testList[0].date + ";" + testList[0].year)
@@ -284,6 +335,13 @@ class PeopleTodayActivity : AppCompatActivity() {
         rvStoredNames_AddNameDialog.adapter = adapter
         rvStoredNames_AddNameDialog.layoutManager = LinearLayoutManager(addNameDialog.context)
 
+        crdlSnackbar = CoordinatorLayout(this).apply {
+            layoutParams = RelativeLayout.LayoutParams(
+                ViewGroup.LayoutParams.MATCH_PARENT,
+                ViewGroup.LayoutParams.MATCH_PARENT
+            )
+        }
+
     }
 
     private fun getPrayerNeedsFromFile(file: File): MutableList<PrayerNeed> {
@@ -389,8 +447,276 @@ class PeopleTodayActivity : AppCompatActivity() {
             R.id.mi_viewAllNames -> {
                 this.startActivity(Intent(this, AllPeopleActivity::class.java))
             }
+            R.id.mi_exportPrayerNeeds -> {
+                val allNames: List<String>
+                val namesJSONArray = JSONArray()
+
+                val files = filesDir.listFiles { file ->
+                    file.extension == "json"
+                }
+
+                if (files != null) {
+                    allNames = files
+                        .map { f -> f.nameWithoutExtension }
+                        .sortedBy { fn -> fn }
+
+                    for (name in allNames) {
+                        try {
+                            val fileName = File(filesDir.path + "/" + name + ".json")
+                            val fileContents = readFile(fileName)
+
+                            if (fileContents != null && fileContents != "") {
+                                namesJSONArray.put(JSONObject().apply {
+                                    put(name, fileContents)
+                                })
+                            }
+                        } catch (e: Exception) {
+                            Toast.makeText(this, "Could not export data for $name", Toast.LENGTH_SHORT).show()
+                            //Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+                            e.printStackTrace()
+                        }
+                    }
+
+                    val resultJsonObject = JSONObject()
+                    resultJsonObject.put("exportDate", Instant.now().toString())
+                    resultJsonObject.put("prayerNeedsExport", namesJSONArray)
+                    val exportString = resultJsonObject.toString(2)
+
+                    val exportsDir = File(filesDir.path + "/exports")
+
+                    try {
+                        if (!exportsDir.exists()) {
+                            exportsDir.mkdir()
+                        }
+
+                        val currentDateTime = Calendar.getInstance().time
+                        val exportDateFormat = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.US)
+                        var exportFile = File("${exportsDir.path}/prayer_needs_export-${exportDateFormat.format(currentDateTime)}.json")
+
+                        if (!exportFile.createNewFile()) {
+                            exportFile = File(
+                                exportFile.path.substringBeforeLast(".json") + "_2.json"
+                            )
+
+                            var count = 2
+                            while (!exportFile.createNewFile()) {
+                                exportFile = File(
+                                    exportFile.path.substringBeforeLast("_$count.json") + "_${count + 1}.json"
+                                )
+                                count++
+                            }
+                        }
+
+                        writeFile(exportFile, exportString, false)
+
+                        //val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
+                        //    putExtra("filePath", exportFile.path)
+                        //}
+
+                        //prayerNeedsExportPath = exportFile.path
+
+                        //Uri.fromFile(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS))
+                        //selectExportFolderActivityLauncher.launch(
+                        //    Uri.fromFile(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS))
+                        //)
+
+                        val resultDirectory = File("/storage/emulated/0/Download/")
+
+                        if (resultDirectory != null) {
+                            //prayerNeedsExportPath = resultPath
+                            //val exportFile = File(prayerNeedsExportPath)
+                                //if (!resultDirectory.canWrite()) {
+                                //    enforceUriPermission(Uri.EMPTY,null,"",1,1,1, "TODO: message if thrown")
+                                //}
+                                //DownloadManager.Request(exportFile.toUri())
+                            try {
+                                //val userFile = File(resultPath/* + "/" + exportFile.name*/)
+                                //if (resultPath.isFile && resultPath.exists() && resultPath.listFiles()?.map{ f -> f.name }?.contains(exportFile.name) == true) {
+                                val savedFile = exportFile.copyTo(File(resultDirectory.path + "/" + exportFile.name), true)
+                                //} else {
+                                //    Toast.makeText(this, "File ${resultPath.path + exportFile.name} already exists in directory!", Toast.LENGTH_LONG).show()
+                                //}
+
+                                this.addContentView(crdlSnackbar, ViewGroup.LayoutParams(
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                ))
+
+                                Snackbar.make(
+                                    crdlSnackbar,
+                                    //this.findViewById<View>(R.id.action_bar),
+                                    "File saved to ${savedFile.path}/${savedFile.name}",
+                                    Snackbar.LENGTH_INDEFINITE
+                                ).apply {
+                                    animationMode = BaseTransientBottomBar.ANIMATION_MODE_SLIDE
+                                    behavior = BaseTransientBottomBar.Behavior().apply {
+                                        setSwipeDirection(SwipeDismissBehavior.SWIPE_DIRECTION_START_TO_END)
+                                        setDragDismissDistance(0.7f)
+                                        setStartAlphaSwipeDistance(0.0f)
+                                    }
+                                    //addCallback(object: Snackbar.Callback() { }) onShow, onDismiss
+                                    addCallback(object: Snackbar.Callback() {
+                                        override fun onDismissed(
+                                            transientBottomBar: Snackbar?,
+                                            event: Int
+                                        ) {
+                                            super.onDismissed(transientBottomBar, event)
+                                            (crdlSnackbar.parent as ViewGroup).removeView(crdlSnackbar)
+                                        }
+                                    })
+                                    setAction("Show") { // on click listener
+                                        try {
+                                            val intent = Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)
+                                            // TODO:
+                                            if (intent.resolveActivityInfo(packageManager, 0) != null) {
+                                                startActivity(intent);
+                                                //dismiss()
+                                            } else {
+                                                Toast.makeText(
+                                                    this@PeopleTodayActivity,
+                                                    "Could not open the file",
+                                                    Toast.LENGTH_LONG
+                                                ).show()
+                                            }
+                                        } catch (e: Exception) {
+                                            Toast.makeText(this@PeopleTodayActivity,
+                                                e.toString(),
+                                                Toast.LENGTH_LONG
+                                            ).show()
+                                            e.printStackTrace()
+                                        }
+                                    }
+                                    // TODO: Make a layout for the Snackbar
+                                    //setBackgroundTintList(Color.parseColor("#808080"))
+                                    setBackgroundTint(Color.parseColor("#808080"))
+                                    setActionTextColor(Color.parseColor("#F0F0F0"))
+                                    setTextColor(Color.parseColor("#F0F0F0"))
+                                    show()
+                                }
+
+                            } catch (e: Exception) {
+                                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+                                e.printStackTrace()
+                            }
+                        }
+                    } catch (e: Exception) {
+                        Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+                        e.printStackTrace()
+                    }
+                }
+            }
+            R.id.mi_importPrayerNeeds -> {
+                val intent = Intent(Intent.ACTION_GET_CONTENT)
+                intent.data = null
+                intent.type = "application/json"
+                openFileActivityLauncher.launch(intent)
+            }
         }
 
         return true
     }
+
+    private fun storePrayerNeedsFromFileContents(fileContents: String) {
+        if (fileContents != "")
+        {
+            try {
+                val importJson = JSONObject(fileContents)
+                val exportDate = Instant.parse(importJson.getString("exportDate"))
+                val lastUpdateDate = Instant.parse(
+                    getSharedPreferences(getString(R.string.lastUpdatedPrayerNeedsData), Context.MODE_PRIVATE)
+                        .getString("lastUpdatedPrayerNeedsData", Instant.MIN.toString())
+                )
+
+                if (exportDate < lastUpdateDate) {
+                    //TODO: maybe check if file contents are the same before deleting?
+                    AlertDialog.Builder(this).apply {
+                        setMessage("The export in the file is older than current data. Continue?")
+                        setCancelable(true)
+                        setPositiveButton("Yes") { _, _ ->
+                            doImport(importJson)
+                        }
+                        setNegativeButton("No", null)
+                        create()
+                        show()
+                    }
+
+                    // TODO: examine:
+                    //MaterialStyledDatePickerDialog(this)
+                    //MaterialStyledDatePickerDialog(this).datePicker
+                    //DatePickerDialog(this).datePicker
+                } else {
+                    doImport(importJson)
+                }
+            } catch (e: Exception) {
+                Toast.makeText(this, e.message.toString(), Toast.LENGTH_LONG).show()
+                e.printStackTrace()
+            }
+        } else {
+            Toast.makeText(this, "Input file is empty!", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun doImport(importJson: JSONObject)
+    {
+        try {
+            val names = importJson.getJSONArray("prayerNeedsExport")
+            val namesCount = names.length()
+
+            filesDir.listFiles { f ->
+                f.extension == "json"
+            }?.forEach {
+                it.delete()
+            }
+
+            val pd = ProgressDialog(this).apply {
+                setCancelable(false)
+                this.setCanceledOnTouchOutside(false)
+                this.max = namesCount
+                this.progress = 0
+            }
+
+            pd.show()
+
+            val loadedNames = mutableListOf<String>()
+            for (i in 0 until namesCount) {
+                val jsonPersonPrayerNeeds = names.getJSONObject(i)
+                val name = jsonPersonPrayerNeeds.names()!!.getString(0)
+                val newFile = File("${filesDir.path}/$name.json")
+                newFile.createNewFile()
+
+                writeFile(newFile, jsonPersonPrayerNeeds.getString(name), false)
+                loadedNames.add(name)
+
+                pd.incrementProgressBy(1)
+            }
+
+
+            namesAddedToday.minus(loadedNames).also { results ->
+                if (results.isNotEmpty()) {
+                    for (name in results) {
+                        val index = namesAddedToday.indexOf(name)
+                        namesAddedToday.removeAt(index)
+                        this.findViewById<RecyclerView>(R.id.rv_namesAddedToday)
+                            .adapter?.notifyItemRemoved(index)
+                    }
+                }
+            }
+
+            val prefs = getSharedPreferences(
+                getString(R.string.lastUpdatedPrayerNeedsData),
+                Context.MODE_PRIVATE
+            )
+            with(prefs.edit()) {
+                putString("lastUpdatedPrayerNeedsData", importJson.getString("exportDate"))
+                apply()
+            }
+            pd.dismiss()
+            Toast.makeText(this, "Import finished", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+            e.printStackTrace()
+        }
+    }
 }
+
+

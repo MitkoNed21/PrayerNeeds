@@ -16,4 +16,14 @@
       android:title="Add name"
       android:icon="@drawable/ic_add_name"
       app:showAsAction="always"/>
+  <item
+      android:id="@+id/mi_exportPrayerNeeds"
+      android:title="Export prayer needs"
+      android:icon="@drawable/ic_export_prayer_needs"
+      app:showAsAction="never"/>
+  <item
+      android:id="@+id/mi_importPrayerNeeds"
+      android:title="Import prayer needs"
+      android:icon="@drawable/ic_import_prayer_needs"
+      app:showAsAction="never"/>
 </menu>
