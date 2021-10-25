@@ -3,6 +3,8 @@
   <component name="DesignSurface">
     <option name="filePathToZoomLevelMap">
       <map>
+        <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/drawable-anydpi/ic_more.xml" value="0.19583333333333333" />
+        <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/drawable/shape_rounded_corners_rectangle.xml" value="0.19583333333333333" />
         <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/layout/activity_main.xml" value="0.30625" />
         <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/layout/activity_main2.xml" value="0.30625" />
         <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/layout/activity_people_today.xml" value="0.22" />
@@ -13,6 +15,7 @@
         <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/layout/all_prayer_needs_top_bar_layout.xml" value="0.30625" />
         <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/layout/all_today_prayer_needs_rv.xml" value="0.14453125" />
         <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/layout/dialog_addname.xml" value="0.1814814814814815" />
+        <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/layout/layout__rv_activity_main_namecontainer.xml" value="0.5267605633802817" />
         <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/layout/layout__rv_all_todays_prayer_needs.xml" value="0.1814814814814815" />
         <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/layout/layout__rv_prayerneed.xml" value="0.37846930193439865" />
         <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/layout/layout__top_bar_all_prayer_needs.xml" value="0.1814814814814815" />

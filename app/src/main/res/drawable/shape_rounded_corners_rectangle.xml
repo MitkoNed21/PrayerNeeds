@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+
+<!-- idea from stackoverflow.com/question/38628607
+     answer by SaravInfern on Jun 28, 2016 -->
+<ripple xmlns:android="http://schemas.android.com/apk/res/android" android:color="#40FFFFFF">
+    <item>
+        <shape android:shape="rectangle" >
+            <corners android:radius="14dp"/>
+        </shape>
+    </item>
+</ripple>

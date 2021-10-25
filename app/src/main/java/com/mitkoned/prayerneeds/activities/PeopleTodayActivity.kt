@@ -13,6 +13,8 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.net.toUri
+import androidx.core.view.MenuItemCompat
+import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.behavior.SwipeDismissBehavior
@@ -232,6 +234,33 @@ class PeopleTodayActivity : AppCompatActivity() {
         //return
 
 
+
+        val swipeGestures = object: ItemTouchHelper.SimpleCallback(
+            ItemTouchHelper.UP + ItemTouchHelper.DOWN, 0
+        ) {
+            override fun onMove(
+                recyclerView: RecyclerView,
+                viewHolder: RecyclerView.ViewHolder,
+                target: RecyclerView.ViewHolder
+            ): Boolean {
+                return if (viewHolder.adapterPosition != target.layoutPosition) {
+                    val currentPosition = viewHolder.adapterPosition
+                    val targetPosition = target.adapterPosition
+
+                    val name = namesAddedToday[currentPosition]
+                    namesAddedToday[currentPosition] = namesAddedToday[targetPosition]
+                    namesAddedToday[targetPosition] = name
+
+                    recyclerView.adapter?.notifyItemMoved(currentPosition, targetPosition)
+                    true
+                } else {
+                    false
+                }
+            }
+
+            override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
+        }
+
         val rvNamesAddedToday = findViewById<RecyclerView>(R.id.rv_namesAddedToday)
         rvNamesAddedToday.adapter = AddedNameTodayElementAdapter(namesAddedToday).apply {
             registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
@@ -267,6 +296,7 @@ class PeopleTodayActivity : AppCompatActivity() {
             })
         }
         rvNamesAddedToday.layoutManager = LinearLayoutManager(this)
+        ItemTouchHelper(swipeGestures).attachToRecyclerView(rvNamesAddedToday)
 
         //val dialogView = View.inflate(this, R.layout.addname_dialog, null)
         //TODO: use MultiAutoCompleteTextView
@@ -561,7 +591,10 @@ class PeopleTodayActivity : AppCompatActivity() {
                                             event: Int
                                         ) {
                                             super.onDismissed(transientBottomBar, event)
-                                            (crdlSnackbar.parent as ViewGroup).removeView(crdlSnackbar)
+                                            val parent = crdlSnackbar.parent
+                                            if (parent != null) {
+                                                (parent as ViewGroup).removeView(crdlSnackbar)
+                                            }
                                         }
                                     })
                                     setAction("Show") { // on click listener

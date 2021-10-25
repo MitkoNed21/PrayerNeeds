@@ -105,8 +105,8 @@ class PrayerNeedsActivity : AppCompatActivity() {
         val etPrayerNeedsText = this.findViewById<EditText>(R.id.et_prayerNeedsText)
 
         val swipeGestures = object: PrayerNeedSwipeGestures(0, ItemTouchHelper.RIGHT) {
-            //private lateinit var tempAddTextValue: String
-
+            //TODO: Add support for deleting a prayer need here...
+            // otherwise would have to send dataPrayerNeedsList to adapter
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val tempAddTextValue = etPrayerNeedsText.text.toString()
 
@@ -129,7 +129,9 @@ class PrayerNeedsActivity : AppCompatActivity() {
                         addButton.visibility = View.VISIBLE
                         etPrayerNeedsText.setText(tempAddTextValue)
                     }
-                    .setIcon(getDrawable(R.drawable.ic_edit_prayer_need))
+                    .setIcon(AppCompatResources.getDrawable(
+                        this@PrayerNeedsActivity, R.drawable.ic_edit_prayer_need)
+                    )
                     .setView(etPrayerNeedsText.apply {
                         this.setText(viewPrayerNeedsList[itemPos].description)
                     }).create().apply {
