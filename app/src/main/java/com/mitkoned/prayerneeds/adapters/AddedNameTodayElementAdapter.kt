@@ -20,6 +20,9 @@ import java.lang.Exception
 class AddedNameTodayElementAdapter (private val names: MutableList<String>)
     : RecyclerView.Adapter<AddedNameTodayElementAdapter.NameElementViewHolder>() {
     inner class NameElementViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
+    enum class Options(val displayName: String) {
+        Delete("Delete")
+    }
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NameElementViewHolder {
         val view = LayoutInflater.from(parent.context).inflate(R.layout.layout__rv_activity_main_namecontainer, parent, false)
@@ -92,12 +95,19 @@ class AddedNameTodayElementAdapter (private val names: MutableList<String>)
                 }
             }
 
+            if (Options.values().isEmpty()) {
+                ibtMoreOptions.visibility = View.GONE
+            }
+
             ibtMoreOptions.setOnClickListener { button ->
                 PopupMenu(button.context, button).also {
-                    it.menu.add("Delete")
+                    for (option in Options.values()) {
+                        it.menu.add(option.displayName)
+                    }
+
                     it.setOnMenuItemClickListener { item ->
                         when (item.title) {
-                            "Delete" -> {
+                            Options.Delete.displayName -> {
                                 AlertDialog.Builder(currentView.context)
                                     .setTitle("Remove person")
                                     .setPositiveButton("Yes") { _, _ ->

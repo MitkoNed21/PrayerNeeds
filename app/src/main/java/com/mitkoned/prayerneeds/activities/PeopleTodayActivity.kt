@@ -128,14 +128,13 @@ class PeopleTodayActivity : AppCompatActivity() {
     }
 
     private fun saveNamesAddedTodayFile() {
-        if (namesAddedToday.size == 0) {
-            return
-        }
-
         val result = StringBuilder()
         result.append(dateFormat.format(Calendar.getInstance()/*.apply{ this.set(Calendar.DAY_OF_MONTH, 26) }*/.time))
-        result.append("|")
-        result.append(namesAddedToday.joinToString(", "))
+
+        if (namesAddedToday.size > 0) {
+            result.append("|")
+            result.append(namesAddedToday.joinToString(", "))
+        }
 
         writeFile(namesAddedTodayFile, result.toString(), false)
     }
@@ -205,14 +204,17 @@ class PeopleTodayActivity : AppCompatActivity() {
                 val inputParts = input.split('|')
 
                 val dateString = inputParts[0]
-                val names = inputParts[1].split(", ")
-                val currentDateString = dateFormat.format(Calendar.getInstance().time)
 
-                if (dateString == currentDateString) {
-                    namesAddedToday.addAll(names)
-                } /*else {
-                    namesAddedTodayFile.delete()
-                }*/
+                if (inputParts.size == 2) {
+                    val names = inputParts[1].split(", ")
+                    val currentDateString = dateFormat.format(Calendar.getInstance().time)
+
+                    if (dateString == currentDateString) {
+                        namesAddedToday.addAll(names)
+                    } /*else {
+                        namesAddedTodayFile.delete()
+                    }*/
+                }
             }
         } catch (e: Exception) {
             Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
@@ -602,7 +604,7 @@ class PeopleTodayActivity : AppCompatActivity() {
                                             val intent = Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)
                                             // TODO:
                                             if (intent.resolveActivityInfo(packageManager, 0) != null) {
-                                                startActivity(intent);
+                                                startActivity(intent)
                                                 //dismiss()
                                             } else {
                                                 Toast.makeText(
