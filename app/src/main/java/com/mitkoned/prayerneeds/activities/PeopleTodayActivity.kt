@@ -18,6 +18,8 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.behavior.SwipeDismissBehavior
+import com.google.android.material.bottomsheet.BottomSheetBehavior
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.mitkoned.prayerneeds.*
@@ -43,6 +45,7 @@ class PeopleTodayActivity : AppCompatActivity() {
     }
 
     private lateinit var crdlSnackbar: CoordinatorLayout
+    //private lateinit var crdlBottomSheet: CoordinatorLayout
 
     //private lateinit var prayerNeedsExportPath: String
     private val openFileActivityLauncher = registerForActivityResult(
@@ -176,6 +179,7 @@ class PeopleTodayActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_people_today)
 
+
 /*
         switchDataDirectories("")
 
@@ -234,7 +238,7 @@ class PeopleTodayActivity : AppCompatActivity() {
         //Toast.makeText(this, parse, Toast.LENGTH_LONG).show()
         //return
 
-
+//        val a = BottomSheetDialog(this)
 
         val swipeGestures = object: ItemTouchHelper.SimpleCallback(
             ItemTouchHelper.UP + ItemTouchHelper.DOWN, 0

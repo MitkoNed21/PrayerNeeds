@@ -41,11 +41,6 @@ class AddedNameTodayElementAdapter (private val names: MutableList<String>)
             val clMainContainer = currentView.findViewById<ConstraintLayout>(R.id.cl_mainContainer)
             val ibtMoreOptions = currentView.findViewById<ImageButton>(R.id.ibt_moreOptions)
 
-            /*clMainContainer.setOnLongClickListener {
-
-
-            }*/
-
             clMainContainer.setOnClickListener {
                 try {
                     val intent = Intent(it.context, PrayerNeedsActivity::class.java).apply {
