@@ -2,6 +2,7 @@ package com.mitkoned.prayerneeds.activities
 
 import androidx.appcompat.app.AppCompatActivity
 import android.app.ActionBar
+import android.graphics.Point
 import android.os.Build
 import android.os.Bundle
 import android.view.*
@@ -56,6 +57,25 @@ class ViewTodaysPrayerNeedsFullscreenActivity : AppCompatActivity() {
             val adapter = AllTodayPrayerNeedsElementAdapter(fileNames)
             rvPrayerNeeds.adapter = adapter
             rvPrayerNeeds.layoutManager = LinearLayoutManager(this)
+
+            val displaySize: Point
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                val insets = windowManager.currentWindowMetrics.windowInsets.getInsetsIgnoringVisibility(
+                        WindowInsets.Type.navigationBars() +
+                                WindowInsets.Type.displayCutout()
+                )
+
+                val insetsWidth = insets.left + insets.right
+                val insetsHeight = insets.bottom + insets.top
+                val bounds = windowManager.currentWindowMetrics.bounds
+
+                displaySize = Point(bounds.width() - insetsWidth, bounds.height() - insetsHeight)
+            } else {
+                displaySize = Point()
+                windowManager.defaultDisplay.getSize(displaySize)
+            }
+
+            rvPrayerNeeds.setPadding(0, 0, 0, displaySize.y)
         } catch (e: Exception) {
             Toast.makeText(this, "TEST", Toast.LENGTH_SHORT).show()
             Toast.makeText(this, e.message.toString(), Toast.LENGTH_LONG).show()

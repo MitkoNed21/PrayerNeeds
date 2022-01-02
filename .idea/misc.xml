@@ -26,8 +26,11 @@
         <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/menu/main_app_bar_menu.xml" value="0.30625" />
         <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/menu/menu_appbar_people_today.xml" value="0.30625" />
         <entry key="..\:/AndroidStudioProjects/PrayerNeeds/app/src/main/res/menu/person_prayer_needs_app_bar_menu.xml" value="0.30625" />
+        <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/activity_people_today.xml" value="0.18840579710144928" />
+        <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/activity_prayer_needs.xml" value="0.18840579710144928" />
+        <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/activity_view_todays_prayer_needs_fullscreen.xml" value="0.16" />
         <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/layout__rv_activity_main_namecontainer.xml" value="0.18840579710144928" />
-        <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/layout__rv_all_prayer_needs_prayer_need.xml" value="0.18840579710144928" />
+        <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/layout__rv_all_prayer_needs_prayer_need.xml" value="0.33" />
         <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/layout__rv_all_todays_prayer_needs.xml" value="0.18840579710144928" />
         <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/layout__rv_dialog_namecontainer.xml" value="0.18840579710144928" />
         <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/layout__rv_prayer_need.xml" value="0.18840579710144928" />
