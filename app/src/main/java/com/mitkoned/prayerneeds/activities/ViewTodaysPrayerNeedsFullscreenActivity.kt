@@ -5,11 +5,14 @@ import android.app.ActionBar
 import android.graphics.Point
 import android.os.Build
 import android.os.Bundle
+import android.os.Handler
+import android.os.Looper
 import android.view.*
 import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.core.view.ViewCompat.getDisplay
+import androidx.core.view.updatePadding
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.mitkoned.prayerneeds.adapters.AllTodayPrayerNeedsElementAdapter
@@ -61,8 +64,8 @@ class ViewTodaysPrayerNeedsFullscreenActivity : AppCompatActivity() {
             val displaySize: Point
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 val insets = windowManager.currentWindowMetrics.windowInsets.getInsetsIgnoringVisibility(
-                        WindowInsets.Type.navigationBars() +
-                                WindowInsets.Type.displayCutout()
+                    WindowInsets.Type.navigationBars() +
+                            WindowInsets.Type.displayCutout()
                 )
 
                 val insetsWidth = insets.left + insets.right
@@ -75,9 +78,12 @@ class ViewTodaysPrayerNeedsFullscreenActivity : AppCompatActivity() {
                 windowManager.defaultDisplay.getSize(displaySize)
             }
 
-            rvPrayerNeeds.setPadding(0, 0, 0, displaySize.y)
+            Handler(Looper.getMainLooper()).post {
+                if (rvPrayerNeeds.computeVerticalScrollRange() > displaySize.y) {
+                    rvPrayerNeeds.updatePadding(bottom = displaySize.y)
+                }
+            }
         } catch (e: Exception) {
-            Toast.makeText(this, "TEST", Toast.LENGTH_SHORT).show()
             Toast.makeText(this, e.message.toString(), Toast.LENGTH_LONG).show()
             e.printStackTrace()
         }
