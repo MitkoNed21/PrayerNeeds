@@ -14,6 +14,7 @@ import androidx.appcompat.app.AlertDialog
 import androidx.coordinatorlayout.widget.CoordinatorLayout
 import androidx.core.net.toUri
 import androidx.core.view.MenuItemCompat
+import androidx.drawerlayout.widget.DrawerLayout
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
@@ -34,6 +35,7 @@ import java.util.*
 
 class PeopleTodayActivity : AppCompatActivity() {
     private lateinit var addNameDialog : AlertDialog
+    private lateinit var addNameBottomSheetDialog : BottomSheetDialog
     private lateinit var etName_AddNameDialog : EditText
     private lateinit var rvStoredNames_AddNameDialog : RecyclerView
     private lateinit var namesAddedTodayFile: File
@@ -310,6 +312,14 @@ class PeopleTodayActivity : AppCompatActivity() {
         // multiple names and add them all at once, maybe then sort
 
         val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_addname, null)
+        addNameBottomSheetDialog = BottomSheetDialog(this, R.style.BottomSheetDialogTheme)
+        addNameBottomSheetDialog.
+        addNameBottomSheetDialog.setContentView(dialogView)
+        addNameBottomSheetDialog.setOnDismissListener {
+            etName_AddNameDialog.setText("")
+        }
+        addNameBottomSheetDialog.setCanceledOnTouchOutside(true)
+
         addNameDialog = AlertDialog.Builder(this)
             .setView(dialogView)
             .setTitle("Add name")
@@ -465,7 +475,8 @@ class PeopleTodayActivity : AppCompatActivity() {
                     }
                 }
 
-                addNameDialog.show()
+                addNameBottomSheetDialog.show()
+//                addNameDialog.show()
             }
             R.id.mi_showPrayerNeedsEnteredToday -> {
                 try {
