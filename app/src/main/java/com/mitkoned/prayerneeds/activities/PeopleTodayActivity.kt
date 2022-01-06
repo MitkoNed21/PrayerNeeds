@@ -241,7 +241,7 @@ class PeopleTodayActivity : AppCompatActivity() {
 //        val a = BottomSheetDialog(this)
 
         val swipeGestures = object: ItemTouchHelper.SimpleCallback(
-            ItemTouchHelper.UP + ItemTouchHelper.DOWN, 0
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0
         ) {
             override fun onMove(
                 recyclerView: RecyclerView,

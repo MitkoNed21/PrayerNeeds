@@ -3,6 +3,7 @@ package com.mitkoned.prayerneeds
 import android.graphics.*
 import android.graphics.drawable.ColorDrawable
 import android.os.Build
+import android.view.View
 import androidx.annotation.RequiresApi
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.ItemTouchHelper
@@ -133,19 +134,37 @@ abstract class PrayerNeedSwipeGestures(
         ItemTouchHelper.Callback.getDefaultUIUtil().clearView(foregroundView)
     }
 
+    var showedAction = false
+    var prevdX = 0f
     @RequiresApi(Build.VERSION_CODES.Q)
     override fun onChildDraw(c: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean)
     {
         val foregroundView = (viewHolder as PrayerNeedAdapter.PrayerNeedViewHolder).foregroundView
-
+        val backgroundView = viewHolder.itemView.findViewById<ConstraintLayout>(R.id.cl_prayerNeedBackground)
+        
+        if (prevdX >= 0 && dX <= 0 ||
+            prevdX <= 0 && dX >= 0) {
+            showedAction = false
+        }
+        
         if (dX < 0) {
-            viewHolder.itemView.findViewById<ConstraintLayout>(R.id.cl_prayerNeedBackground)
-                .background = ColorDrawable(Color.parseColor("#ff8000"))
+            backgroundView.background = ColorDrawable(Color.parseColor("#ff2000"))
+            if (!showedAction) {
+                backgroundView.findViewById<View>(R.id.cl_prayerNeedBackgroundLeft).visibility = View.INVISIBLE
+                backgroundView.findViewById<View>(R.id.cl_prayerNeedBackgroundRight).visibility = View.VISIBLE
+                showedAction = true
+            }
         } else {
-            viewHolder.itemView.findViewById<ConstraintLayout>(R.id.cl_prayerNeedBackground)
-                .background = ColorDrawable(Color.parseColor("#8000ff"))
+            backgroundView.background = ColorDrawable(Color.parseColor("#8000ff"))
+            if (!showedAction) {
+                backgroundView.findViewById<View>(R.id.cl_prayerNeedBackgroundLeft).visibility = View.VISIBLE
+                backgroundView.findViewById<View>(R.id.cl_prayerNeedBackgroundRight).visibility = View.INVISIBLE
+                showedAction = true
+            }
+            
         }
 
+        prevdX = dX
         ItemTouchHelper.Callback.getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, dX, dY, actionState, isCurrentlyActive)
     }
 
@@ -161,7 +180,7 @@ abstract class PrayerNeedSwipeGestures(
             it.right = foregroundView.width
         }, Paint().apply {
             if (dX < 0) {
-                this.color = Color.argb(-dX / (foregroundView.width * 1.1f), 1f, 0.5f, 0f)
+                this.color = Color.argb(-dX / (foregroundView.width * 1.1f), 1f, 0.125f, 0f)
             } else {
                 this.color = Color.argb(dX / (foregroundView.width * 1.1f), 0.5f, 0f, 1f)
             }
