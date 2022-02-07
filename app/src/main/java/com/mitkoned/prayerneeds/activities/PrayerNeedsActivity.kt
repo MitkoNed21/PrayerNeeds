@@ -23,10 +23,10 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
-import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.mitkoned.prayerneeds.*
 import com.mitkoned.prayerneeds.adapters.PrayerNeedAdapter
+import com.mitkoned.prayerneeds.utilities.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -34,6 +34,8 @@ import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
 import kotlin.properties.Delegates
+
+private const val BULGARIAN_ACCENTED_I_REPLACEMENT_REGEX = "(?<![A-Za-z0-9А-Яа-я_])й(?![A-Za-z0-9А-Яа-я_])"
 
 class PrayerNeedsActivity : AppCompatActivity() {
     private var requestedNameIndex by Delegates.notNull<Int>()
@@ -52,23 +54,21 @@ class PrayerNeedsActivity : AppCompatActivity() {
     private var sbPrayerNeedDeleted: Snackbar? = null
 
     override fun onPause() {
-        if (sbPrayerNeedDeleted?.isShown == true)
-        sbPrayerNeedDeleted?.dismiss()
+        //if (sbPrayerNeedDeleted?.isShown == true)
+        //sbPrayerNeedDeleted?.dismiss()
+
+        // sort descending
+        dataPrayerNeedsList.sortWith { first, second ->
+            val firstDate = dateFormat.parse(first.date + ";" + first.year)
+            val secondDate = dateFormat.parse(second.date + ";" + second.year)
+            return@sortWith -firstDate!!.compareTo(secondDate)
+        }
+        saveFile()
+
         super.onPause()
     }
 
-    override fun onDestroy() {
-        //TODO: Exporting doesn't work on Android 10 AVD
-        //TODO: DON'T SAVE HERE! READ onDestroy, maybe use onPause <- research
-
-        dataPrayerNeedsList.sortWith(kotlin.Comparator(fun (first, second): Int {
-            val firstDate = dateFormat.parse(first.date + ";" + first.year)
-            val secondDate = dateFormat.parse(second.date + ";" + second.year)
-            return -firstDate!!.compareTo(secondDate)
-        }))
-        saveFile()
-        super.onDestroy()
-    }
+    // ** TODO: Sometimes on Android 10 AVD it crashes when accessing add name or import(/export?)?
 
     private fun saveFile() {
         var errored = false
@@ -83,9 +83,15 @@ class PrayerNeedsActivity : AppCompatActivity() {
         }
 
         if (!errored) {
-            val prefs = getSharedPreferences(getString(R.string.lastUpdatedPrayerNeedsData), Context.MODE_PRIVATE)
+            val prefs = getSharedPreferences(
+                getString(R.string.lastUpdatedPrayerNeedsDataPrefName),
+                Context.MODE_PRIVATE
+            )
             with (prefs.edit()) {
-                putString("lastUpdatedPrayerNeedsData", Instant.now().toString())
+                putString(
+                    getString(R.string.lastUpdatedPrayerNeedsDataString),
+                    Instant.now().toString()
+                )
                 apply()
             }
         }
@@ -118,8 +124,6 @@ class PrayerNeedsActivity : AppCompatActivity() {
         val etPrayerNeedsText = this.findViewById<EditText>(R.id.et_prayerNeedsText)
 
         val swipeGestures = object: PrayerNeedSwipeGestures(0, ItemTouchHelper.RIGHT or ItemTouchHelper.LEFT) {
-            //TODO: Add support for deleting a prayer need here...
-            // otherwise would have to send dataPrayerNeedsList to adapter
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
                 val itemPos = viewHolder.layoutPosition
                 val adapterPosition = viewHolder.adapterPosition
@@ -148,7 +152,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
                                         viewPrayerNeedsList.add(adapterPosition, removedPrayerNeed)
                                         rvPrayerNeeds.adapter?.notifyItemInserted(adapterPosition)
                                     }
-                                    addCallback(object : BaseTransientBottomBar.BaseCallback<Snackbar>() {
+                                    addCallback(object : Snackbar.Callback() {
                                         override fun onDismissed(
                                             transientBottomBar: Snackbar?,
                                             event: Int
@@ -213,14 +217,11 @@ class PrayerNeedsActivity : AppCompatActivity() {
                         rvPrayerNeeds.adapter?.notifyItemChanged(itemPos)
                         //addText.text = viewPrayerNeedsList[itemPos].description
 
-
                         //super.onSwiped(viewHolder, direction)
                     }
                 }
             }
         }
-
-
 //        val swipeGestures = object: PrayerNeedSwipeGestures(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
 //
 //        }
@@ -253,15 +254,15 @@ class PrayerNeedsActivity : AppCompatActivity() {
             val inputJsonString = readFile(File(fileName))
 
             //if (JsonReader(StringReader(inputJsonString)).hasNext())
-            if (inputJsonString != null && inputJsonString != "") {
+            if (!inputJsonString.isNullOrBlank()) {
                 val jsonObject = JSONObject(inputJsonString)
 
                 if (jsonObject.has("prayerNeeds")) {
                     val items = jsonObject.getJSONArray("prayerNeeds")
                     val itemsLength = items.length()
 
-                    for ((index, _) in (0 until itemsLength).withIndex()) {
-                        val currentObject = items.getJSONObject(index)
+                    for (i in 0 until itemsLength) {
+                        val currentObject = items.getJSONObject(i)
 
                         val date = currentObject.getString("date")
                         val year = currentObject.getString("year")
@@ -319,7 +320,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
         val enteredText = etView.text.trim().toString()
         if (enteredText == "") return
 
-        val desc = enteredText.replace(Regex("(?<![A-Za-z0-9А-Яа-я_])й(?![A-Za-z0-9А-Яа-я_])"), "ѝ")
+        val desc = enteredText.replace(Regex(BULGARIAN_ACCENTED_I_REPLACEMENT_REGEX), "ѝ")
 
         dataPrayerNeedsList[dataPrayerNeedsList.indexOf(viewPrayerNeedsList[itemPosition])].description = desc
         viewPrayerNeedsList[itemPosition].description = desc
@@ -332,7 +333,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
         val enteredText = etView.text.trim().toString()
         if (enteredText == "") return
 
-        val desc = enteredText.replace(Regex("(?<![A-Za-z0-9А-Яа-я_])й(?![A-Za-z0-9А-Яа-я_])"), "ѝ")
+        val desc = enteredText.replace(Regex(BULGARIAN_ACCENTED_I_REPLACEMENT_REGEX), "ѝ")
 
         val currentDate = Calendar.getInstance().time
 

@@ -6,5 +6,6 @@
     <string name="dummy_button">Dummy Button</string>
     <string name="dummy_content">DUMMY\nCONTENT</string>
     <string name="prayerGatheringText">Молитвено събиране</string>
-    <string name="lastUpdatedPrayerNeedsData">com.mitkoned.prayerneeds.LAST_UPDATED_PRAYER_NEEDS_DATA</string>
+    <string name="lastUpdatedPrayerNeedsDataPrefName">com.mitkoned.prayerneeds.LAST_UPDATED_PRAYER_NEEDS_DATA</string>
+    <string name="lastUpdatedPrayerNeedsDataString">lastUpdatedPrayerNeedsData</string>
 </resources>

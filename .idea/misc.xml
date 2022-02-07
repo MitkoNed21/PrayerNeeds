@@ -29,10 +29,11 @@
         <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/drawable-anydpi/ic_more.xml" value="0.2203125" />
         <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/drawable/shape_bottom_sheet_dialog.xml" value="0.2203125" />
         <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/drawable/shape_name_container_options_button.xml" value="0.2203125" />
+        <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/drawable/shape_ripple_rounded_rectangle.xml" value="0.2203125" />
         <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/drawable/shape_rounded_corners_rectangle.xml" value="0.2203125" />
         <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/drawable/shape_rounded_rectangle.xml" value="0.2203125" />
-        <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/activity_people_today.xml" value="0.33" />
-        <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/activity_prayer_needs.xml" value="0.25" />
+        <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/activity_people_today.xml" value="0.25" />
+        <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/activity_prayer_needs.xml" value="0.22" />
         <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/activity_view_todays_prayer_needs_fullscreen.xml" value="0.16" />
         <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/dialog_addname.xml" value="0.1793478260869565" />
         <entry key="..\:/Users/mitko/Projects/Android/PrayerNeeds/app/src/main/res/layout/layout__rv_activity_main_namecontainer.xml" value="0.2" />

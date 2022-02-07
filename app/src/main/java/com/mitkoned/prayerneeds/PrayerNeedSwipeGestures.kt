@@ -136,7 +136,6 @@ abstract class PrayerNeedSwipeGestures(
 
     var showedAction = false
     var prevdX = 0f
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onChildDraw(c: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean)
     {
         val foregroundView = (viewHolder as PrayerNeedAdapter.PrayerNeedViewHolder).foregroundView
@@ -168,7 +167,6 @@ abstract class PrayerNeedSwipeGestures(
         ItemTouchHelper.Callback.getDefaultUIUtil().onDraw(c, recyclerView, foregroundView, dX, dY, actionState, isCurrentlyActive)
     }
 
-    @RequiresApi(Build.VERSION_CODES.Q)
     override fun onChildDrawOver(c: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean)
     {
         val foregroundView = (viewHolder as PrayerNeedAdapter.PrayerNeedViewHolder).foregroundView
@@ -184,7 +182,6 @@ abstract class PrayerNeedSwipeGestures(
             } else {
                 this.color = Color.argb(dX / (foregroundView.width * 1.1f), 0.5f, 0f, 1f)
             }
-            blendMode = BlendMode.SRC_OVER
         })
 
         ItemTouchHelper.Callback.getDefaultUIUtil().onDrawOver(c, recyclerView, foregroundView, dX, dY, actionState, isCurrentlyActive)
