@@ -1,48 +1,83 @@
 <?xml version="1.0" encoding="utf-8"?>
-<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.coordinatorlayout.widget.CoordinatorLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-    android:id="@+id/cl_addName"
     android:layout_width="match_parent"
-    android:layout_height="300dp"
-    android:layout_margin="20dp"
-    android:paddingLeft="20dp"
-    android:paddingTop="16dp"
-    android:paddingRight="20dp"
-    android:paddingBottom="8dp"
-    android:scrollbarSize="8dp">
+    android:layout_height="match_parent"
+    android:id="@+id/crdl_dialog_addName">
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/rv_storedNames"
-        android:layout_width="0dp"
-        android:layout_height="215dp"
-        android:scrollbarAlwaysDrawVerticalTrack="false"
-        android:scrollbars="vertical"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toTopOf="parent" />
-
-    <!--
-    <MultiAutoCompleteTextView
+    <androidx.constraintlayout.widget.ConstraintLayout
+        android:id="@+id/cl_addName"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:completionThreshold="1"
+        android:layout_height="match_parent"
+        android:layout_margin="16dp"
+        android:paddingHorizontal="10dp"
+        android:paddingTop="16dp"
+        android:paddingBottom="8dp"
+        android:scrollbarSize="8dp"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rv_storedNames" />
-    -->
+        app:layout_constraintTop_toTopOf="parent"
+        app:layout_constraintBottom_toBottomOf="parent">
 
-    <EditText
-        android:id="@+id/et_nameToAdd"
-        android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="10dp"
-        android:ems="10"
-        android:hint="Enter name"
-        android:inputType="textPersonName|textCapWords"
-        android:maxLength="50"
-        app:layout_constraintEnd_toEndOf="parent"
-        app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintTop_toBottomOf="@+id/rv_storedNames" />
-</androidx.constraintlayout.widget.ConstraintLayout>
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/rv_storedNames"
+            android:layout_width="0dp"
+            android:layout_height="600dp"
+            android:layout_marginTop="16dp"
+            android:scrollbarAlwaysDrawVerticalTrack="false"
+            android:scrollbars="vertical"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent"
+            app:layout_constraintBottom_toBottomOf="@id/cl_dialog_addName_bottomView"
+            android:paddingBottom="50dp"/>
+
+        <!--
+        <MultiAutoCompleteTextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="10dp"
+            android:completionThreshold="1"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toBottomOf="@+id/rv_storedNames" />
+        -->
+
+        <androidx.constraintlayout.widget.ConstraintLayout
+            android:id="@+id/cl_dialog_addName_bottomView"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            app:layout_constraintEnd_toEndOf="parent"
+            app:layout_constraintStart_toStartOf="parent"
+            app:layout_constraintTop_toTopOf="parent">
+
+            <EditText
+                android:id="@+id/et_nameToAdd"
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_marginTop="5dp"
+                android:layout_marginBottom="10dp"
+                android:hint="Enter name"
+                android:inputType="textPersonName|textCapWords"
+                android:maxLength="50"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toStartOf="@id/btn_addNameToToday"
+                app:layout_constraintStart_toStartOf="parent"
+                app:layout_constraintTop_toTopOf="parent"
+                tools:ignore="Autofill" />
+
+            <Button
+                android:id="@+id/btn_addNameToToday"
+                android:layout_width="wrap_content"
+                android:layout_height="match_parent"
+                android:layout_marginStart="10dp"
+                android:text="Add"
+                app:layout_constraintBottom_toBottomOf="parent"
+                app:layout_constraintEnd_toEndOf="parent"
+                app:layout_constraintStart_toEndOf="@id/et_nameToAdd"
+                app:layout_constraintTop_toTopOf="parent" />
+        </androidx.constraintlayout.widget.ConstraintLayout>
+    </androidx.constraintlayout.widget.ConstraintLayout>
+</androidx.coordinatorlayout.widget.CoordinatorLayout>

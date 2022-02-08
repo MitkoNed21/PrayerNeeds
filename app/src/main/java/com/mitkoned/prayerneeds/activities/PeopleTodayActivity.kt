@@ -4,7 +4,6 @@ import android.app.DownloadManager
 import android.app.ProgressDialog
 import android.content.*
 import android.graphics.Color
-import android.net.Uri
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.*
@@ -12,15 +11,14 @@ import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.net.toUri
-import androidx.core.view.MenuItemCompat
-import androidx.drawerlayout.widget.DrawerLayout
+import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.behavior.SwipeDismissBehavior
 import com.google.android.material.bottomsheet.BottomSheetBehavior
 import com.google.android.material.bottomsheet.BottomSheetDialog
+import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.mitkoned.prayerneeds.*
@@ -34,10 +32,11 @@ import java.time.Instant
 import java.util.*
 
 class PeopleTodayActivity : AppCompatActivity() {
-    private lateinit var addNameDialog : AlertDialog
-    private lateinit var addNameBottomSheetDialog : BottomSheetDialog
-    private lateinit var etName_AddNameDialog : EditText
+    private lateinit var addNameBottomSheetDialog : BottomSheetDialogFragment
     private lateinit var rvStoredNames_AddNameDialog : RecyclerView
+
+    private lateinit var rvNamesAddedToday: RecyclerView
+
     private lateinit var namesAddedTodayFile: File
 
     private val storedNames = mutableListOf<String>()
@@ -132,6 +131,21 @@ class PeopleTodayActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
+    fun addNameToNamesAddedToday(name: String) {
+        if (name.isNotEmpty() && !namesAddedToday.contains(name)) {
+            namesAddedToday.add(name)
+            rvNamesAddedToday.adapter?.notifyItemInserted(namesAddedToday.lastIndex)
+
+            val fileName = filesDir.path + "/" + name + ".json"
+            try {
+                File(fileName).createNewFile()
+            } catch (e: Exception) {
+                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+                //e.printStackTrace()
+            }
+        }
+    }
+
     private fun saveNamesAddedTodayFile() {
         val result = StringBuilder()
         result.append(dateFormat.format(Calendar.getInstance()/*.apply{ this.set(Calendar.DAY_OF_MONTH, 26) }*/.time))
@@ -181,6 +195,7 @@ class PeopleTodayActivity : AppCompatActivity() {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_people_today)
 
+        rvNamesAddedToday = findViewById(R.id.rv_namesAddedToday)
 
 /*
         switchDataDirectories("")
@@ -268,7 +283,6 @@ class PeopleTodayActivity : AppCompatActivity() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
         }
 
-        val rvNamesAddedToday = findViewById<RecyclerView>(R.id.rv_namesAddedToday)
         rvNamesAddedToday.adapter = AddedNameTodayElementAdapter(namesAddedToday).apply {
             registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
                 override fun onChanged() {
@@ -305,80 +319,33 @@ class PeopleTodayActivity : AppCompatActivity() {
         rvNamesAddedToday.layoutManager = LinearLayoutManager(this)
         ItemTouchHelper(swipeGestures).attachToRecyclerView(rvNamesAddedToday)
 
-        //val dialogView = View.inflate(this, R.layout.addname_dialog, null)
-        //TODO: use MultiAutoCompleteTextView
+        //AlertDialog.Builder(this)
+        //    .setTitle("Add name")
 
-        //TODO: have checkbox next to name when adding so can select
-        // multiple names and add them all at once, maybe then sort
+        addNameBottomSheetDialog = AddNameModalBottomSheet()
+        addNameBottomSheetDialog.setStyle(
+            DialogFragment.STYLE_NORMAL,
+            R.style.ThemeOverlay_App_BottomSheetDialog
+        )
+        //rvStoredNames_AddNameDialog = addNameBottomSheetDialog.requireView().findViewById(R.id.rv_storedNames)
 
-        val dialogView = LayoutInflater.from(this).inflate(R.layout.dialog_addname, null)
-        addNameBottomSheetDialog = BottomSheetDialog(this, R.style.BottomSheetDialogTheme)
-        addNameBottomSheetDialog.
-        addNameBottomSheetDialog.setContentView(dialogView)
-        addNameBottomSheetDialog.setOnDismissListener {
-            etName_AddNameDialog.setText("")
-        }
-        addNameBottomSheetDialog.setCanceledOnTouchOutside(true)
+        //TODO: if app is quit or switching to another activity
+        // (see if switching to another activity and going back
+        // saves the names in the list) save today's added names
+        // unless list is empty,
+        // if person has no prayer needs offered, keep name
+        // save also date, upon opening, if date is different
+        // than saved to file (or maybe last accessed)
+        // (maybe move list of names to history) clear list
 
-        addNameDialog = AlertDialog.Builder(this)
-            .setView(dialogView)
-            .setTitle("Add name")
-            .setPositiveButton("Add") { _, _ ->
-               val selectedName = etName_AddNameDialog.text.toString()
-                if (!namesAddedToday.contains(selectedName) && selectedName != "") {
-                    namesAddedToday.add(selectedName)
-                    rvNamesAddedToday.adapter?.notifyItemInserted(namesAddedToday.lastIndex)
-                    // TODO: This should not work? It accesses position -1
-                    rvNamesAddedToday.adapter?.notifyItemChanged(namesAddedToday.size - 2)
+        //TODO: second activity could have a button to
+        // show/hide prayer needs that are answered
 
-                    val fileName = filesDir.path + "/" + selectedName + ".json"
-                    try {
-                        File(fileName).createNewFile()
-                    } catch (e: Exception) {
-                        Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show() //e.printStackTrace()
-                    }
-                }
-
-                //saveNamesAddedTodayFile()
-                //val directories = filesDir.listFiles(FileFilter { pathname -> pathname.isDirectory })
-//                if (ActivityCompat.checkSelfPermission(this,
-//                        Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-//
-//                }
-
-                //TODO: if app is quit or switching to another activity
-                // (see if switching to another activity and going back
-                // saves the names in the list) save today's added names
-                // unless list is empty,
-                // if person has no prayer needs offered, keep name
-                // save also date, upon opening, if date is different
-                // than saved to file (or maybe last accessed)
-                // (maybe move list of names to history) clear list
-
-                //TODO: second activity could have a button to
-                // show/hide prayer needs that are answered
-
-                //TODO: add a way to see all prayer needs ever offered
-                // it could be done like the main screen (list of names
-                // in alphabetical order, which when clicked launch
-                // another activity (could reuse MainActivity) with
-                // all the prayer needs offered by the person)
-            }
-            .setOnDismissListener {
-                //Toast.makeText(this, etName_AddNameDialog.text.toString(), Toast.LENGTH_SHORT).show()
-                //TODO: Search in files for file with text in EditText
-                //
-
-                etName_AddNameDialog.setText("")
-            }
-            .create()
-
-        etName_AddNameDialog = dialogView.findViewById(R.id.et_nameToAdd)
-
-        rvStoredNames_AddNameDialog = dialogView.findViewById(R.id.rv_storedNames)
-        val adapter = AddNameDialogElementAdapter(storedNames, addNameDialog)
-        rvStoredNames_AddNameDialog.adapter = adapter
-        rvStoredNames_AddNameDialog.layoutManager = LinearLayoutManager(addNameDialog.context)
+        //TODO: add a way to see all prayer needs ever offered
+        // it could be done like the main screen (list of names
+        // in alphabetical order, which when clicked launch
+        // another activity (could reuse MainActivity) with
+        // all the prayer needs offered by the person)
 
         crdlSnackbar = CoordinatorLayout(this).apply {
             layoutParams = RelativeLayout.LayoutParams(
@@ -464,19 +431,23 @@ class PeopleTodayActivity : AppCompatActivity() {
                             .sortedBy { fn -> fn }
 
                     storedNames.clear()
-                    rvStoredNames_AddNameDialog.adapter?.notifyItemRangeRemoved(0, rvStoredNames_AddNameDialog.childCount)
+                    //rvStoredNames_AddNameDialog.adapter?.notifyItemRangeRemoved(0, rvStoredNames_AddNameDialog.childCount)
 
                     for (fn in fileNames) {
                         storedNames.add(fn)
 
-                        rvStoredNames_AddNameDialog.adapter?.notifyItemInserted(storedNames.size - 1)
-                        // TODO: This should not work? It accesses position -1
-                        rvStoredNames_AddNameDialog.adapter?.notifyItemChanged(storedNames.size - 2)
+                        //rvStoredNames_AddNameDialog.adapter?.notifyItemInserted(storedNames.size - 1)
                     }
                 }
 
-                addNameBottomSheetDialog.show()
-//                addNameDialog.show()
+                addNameBottomSheetDialog.arguments = Bundle().apply {
+                    putStringArray("storedNames", storedNames.toTypedArray())
+                }
+
+                if (!addNameBottomSheetDialog.isAdded)
+                {
+                    addNameBottomSheetDialog.show(supportFragmentManager, AddNameModalBottomSheet.TAG)
+                }
             }
             R.id.mi_showPrayerNeedsEnteredToday -> {
                 try {

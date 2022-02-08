@@ -10,17 +10,36 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.mitkoned.prayerneeds.R
+import org.w3c.dom.Text
 import java.lang.Exception
 
-class AddNameDialogElementAdapter (private val names: List<String>, private val addNameDialog: AlertDialog)
+class AddNameDialogElementAdapter (private val names: List<String>, private val addNameDialog: BottomSheetDialog)
     : RecyclerView.Adapter<AddNameDialogElementAdapter.NameElementViewHolder>() {
     inner class NameElementViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView)
 
+    private lateinit var clNameContainer: ConstraintLayout
+    private lateinit var tvNameText: TextView
+
+    private lateinit var etName: EditText
+    private lateinit var btnAddNameToToday: Button
+
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NameElementViewHolder {
-        val view = LayoutInflater.from(parent.context).inflate(R.layout.layout__rv_dialog_namecontainer, parent, false)
+        val view = LayoutInflater.from(parent.context)
+            .inflate(R.layout.layout__rv_dialog_namecontainer, parent, false)
+
+
+        // this sets fields to last element's views.
+        // look up how to use?
+        clNameContainer = view.findViewById(R.id.cl_nameContainer)
+        tvNameText = clNameContainer.findViewById(R.id.tv_nameText)
+
+        etName = addNameDialog.findViewById(R.id.et_nameToAdd)!!
+        btnAddNameToToday = addNameDialog.findViewById(R.id.btn_addNameToToday)!!
+
         return NameElementViewHolder(view)
-        }
+    }
 
     override fun getItemCount(): Int {
         return names.size
@@ -29,17 +48,16 @@ class AddNameDialogElementAdapter (private val names: List<String>, private val 
     override fun onBindViewHolder(holder: NameElementViewHolder, position: Int) {
         try {
             val currentView = holder.itemView
-
-            //val btName = currentView.findViewById<Button>(R.id.bt_nameContainer)
             val clNameContainer = currentView.findViewById<ConstraintLayout>(R.id.cl_nameContainer)
             val tvNameText = clNameContainer.findViewById<TextView>(R.id.tv_nameText)
 
+            val etName = addNameDialog.findViewById<EditText>(R.id.et_nameToAdd)!!
+            val btnAddNameToToday = addNameDialog.findViewById<Button>(R.id.btn_addNameToToday)!!
+
             clNameContainer.setOnClickListener {
                 //TODO: When typing in the EditText, offer names already added
-
-                val etName = addNameDialog.findViewById<EditText>(R.id.et_nameToAdd)
-                etName?.setText(tvNameText.text)
-                addNameDialog.getButton(AlertDialog.BUTTON_POSITIVE).performClick()
+                etName.setText(tvNameText.text)
+                btnAddNameToToday.performClick()
             }
 
             currentView.apply {

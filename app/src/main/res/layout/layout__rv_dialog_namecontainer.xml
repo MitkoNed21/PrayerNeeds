@@ -4,8 +4,8 @@
     android:id="@+id/cl_nameContainer"
     android:layout_width="match_parent"
     android:layout_height="46dp"
-    android:layout_marginVertical="4dp"
-    android:background="@drawable/shape_rounded_rectangle"
+    android:layout_marginVertical="3dp"
+    android:background="@drawable/shape_dialog_add_name_name_container"
     android:backgroundTint="#282828"
     android:foreground="@drawable/shape_ripple_rounded_rectangle">
 
