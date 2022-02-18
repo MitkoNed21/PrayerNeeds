@@ -1,15 +1,10 @@
 package com.mitkoned.prayerneeds.activities
 
-import android.Manifest
 import android.app.DownloadManager
 import android.app.ProgressDialog
 import android.content.*
-import android.content.pm.PackageManager
 import android.graphics.Color
-import android.net.Uri
 import android.os.*
-import android.provider.DocumentsContract
-import android.provider.MediaStore
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.*
@@ -17,9 +12,6 @@ import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.coordinatorlayout.widget.CoordinatorLayout
-import androidx.core.app.ActivityOptionsCompat
-import androidx.core.content.ContentProviderCompat
-import androidx.core.net.toUri
 import androidx.databinding.ObservableArrayList
 import androidx.databinding.ObservableList
 import androidx.documentfile.provider.DocumentFile
@@ -28,14 +20,11 @@ import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.behavior.SwipeDismissBehavior
-import com.google.android.material.bottomsheet.BottomSheetBehavior
-import com.google.android.material.bottomsheet.BottomSheetDialog
 import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.mitkoned.prayerneeds.*
 import com.mitkoned.prayerneeds.utilities.*
-import com.mitkoned.prayerneeds.adapters.AddNameDialogElementAdapter
 import com.mitkoned.prayerneeds.adapters.AddedNameTodayElementAdapter
 import org.json.JSONObject
 import java.io.*
@@ -361,7 +350,7 @@ class PeopleTodayActivity : AppCompatActivity() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
         }
 
-        val rvNamesAddedToday = findViewById<RecyclerView>(R.id.rv_namesAddedToday)
+        rvNamesAddedToday = findViewById(R.id.rv_namesAddedToday)
         rvNamesAddedToday.adapter = AddedNameTodayElementAdapter(namesAddedToday).apply {
             registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
                 override fun onChanged() {
@@ -409,10 +398,9 @@ class PeopleTodayActivity : AppCompatActivity() {
 
         //saveNamesAddedTodayFile()
         //val directories = filesDir.listFiles(FileFilter { pathname -> pathname.isDirectory })
-//                if (ActivityCompat.checkSelfPermission(this,
-//                        Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
-//
-//                }
+        //if (ActivityCompat.checkSelfPermission(this,
+        //    Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+        //}
 
         //TODO: if app is quit or switching to another activity
         // (see if switching to another activity and going back
