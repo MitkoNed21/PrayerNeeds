@@ -13,7 +13,7 @@
     <style name="ThemeOverlay.App.BottomSheetDialog" parent="ThemeOverlay.MaterialComponents.BottomSheetDialog">
         <item name="bottomSheetStyle">@style/BottomSheetStyle</item>
         <item name="enableEdgeToEdge">true</item>
-        <item name="behavior_draggable">true</item>
+        <item name="behavior_draggable">false</item>
         <item name="behavior_fitToContents">true</item>
         <item name="behavior_halfExpandedRatio">0.707</item>
     </style>

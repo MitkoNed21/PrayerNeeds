@@ -57,24 +57,6 @@ class AddedNameTodayElementAdapter (private val names: MutableList<String>)
             }
 
             var touched = false
-            /*ibtMoreOptions.setOnTouchListener { view, event ->
-                when (event.action) {
-                    MotionEvent. -> {
-                        if (!touched) {
-                            touched = true
-                            view.backgroundTintList =
-                                ColorStateList.valueOf(Color.parseColor("#202020"))
-                        }
-                    }
-                    MotionEvent.ACTION_UP -> {
-                        if (touched) {
-                            touched = false
-                            view.backgroundTintList = ColorStateList.valueOf(Color.TRANSPARENT)
-                        }
-                    }
-                }
-                true
-            }*/
             ibtMoreOptions.onFocusChangeListener = View.OnFocusChangeListener { _, hasFocus ->
                 if (hasFocus) {
                     if (!touched) {
@@ -103,31 +85,24 @@ class AddedNameTodayElementAdapter (private val names: MutableList<String>)
                     it.setOnMenuItemClickListener { item ->
                         when (item.title) {
                             Options.Delete.displayName -> {
-                                AlertDialog.Builder(currentView.context)
-                                    .setTitle("Remove person")
-                                    .setPositiveButton("Yes") { _, _ ->
-                                        val adapterPosition = holder.adapterPosition
-                                        val removedName = names.removeAt(adapterPosition)
-                                        this.notifyItemRemoved(adapterPosition)
+                                val adapterPosition = holder.adapterPosition
+                                val removedName = names.removeAt(adapterPosition)
+                                this.notifyItemRemoved(adapterPosition)
 
-                                        Snackbar.make(
-                                            currentView.parent as RecyclerView,
-                                            removedName + " was removed.",
-                                            Snackbar.LENGTH_LONG)
-                                            .setAction("Undo") { // on click listener // TODO: if names doesn't contain the name.
-                                                names.add(adapterPosition, removedName)
-                                                this.notifyItemInserted(adapterPosition)
-                                            }
-                                            //.setBackgroundTintList(Color.parseColor("#808080"))
-                                            // TODO: Make a layout for the Snackbar
-                                            .setBackgroundTint(Color.parseColor("#808080"))
-                                            .setActionTextColor(Color.parseColor("#F0F0F0"))
-                                            .setTextColor(Color.parseColor("#F0F0F0"))
-                                            .show()
+                                Snackbar.make(
+                                    currentView.parent as RecyclerView,
+                                    "$removedName was removed.",
+                                    Snackbar.LENGTH_LONG)
+                                    .setAction("Undo") { // on click listener
+                                        // impossible?: TODO: if names doesn't contain the name.
+                                        names.add(adapterPosition, removedName)
+                                        this.notifyItemInserted(adapterPosition)
                                     }
-                                    .setCancelable(true)
-                                    .setMessage("Do you want to remove ${names[holder.adapterPosition]} from today?")
-                                    .create()
+                                    //.setBackgroundTintList(Color.parseColor("#808080"))
+                                    // TODO: Make a layout for the Snackbar
+                                    .setBackgroundTint(Color.parseColor("#808080"))
+                                    .setActionTextColor(Color.parseColor("#F0F0F0"))
+                                    .setTextColor(Color.parseColor("#F0F0F0"))
                                     .show()
 
                                 true

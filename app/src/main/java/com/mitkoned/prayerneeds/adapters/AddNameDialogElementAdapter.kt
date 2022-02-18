@@ -24,11 +24,11 @@ class AddNameDialogElementAdapter (private val names: List<String>, private val 
 
     private lateinit var etName: EditText
     private lateinit var btnAddNameToToday: Button
+    private val namesArray = names.toTypedArray()
 
     override fun onCreateViewHolder(parent: ViewGroup, viewType: Int): NameElementViewHolder {
         val view = LayoutInflater.from(parent.context)
             .inflate(R.layout.layout__rv_dialog_namecontainer, parent, false)
-
 
         // this sets fields to last element's views.
         // look up how to use?
@@ -45,6 +45,10 @@ class AddNameDialogElementAdapter (private val names: List<String>, private val 
         return names.size
     }
 
+    override fun getItemId(position: Int): Long {
+        return namesArray.indexOf(names[position]).toLong()
+    }
+
     override fun onBindViewHolder(holder: NameElementViewHolder, position: Int) {
         try {
             val currentView = holder.itemView
@@ -55,16 +59,10 @@ class AddNameDialogElementAdapter (private val names: List<String>, private val 
             val btnAddNameToToday = addNameDialog.findViewById<Button>(R.id.btn_addNameToToday)!!
 
             clNameContainer.setOnClickListener {
-                //TODO: When typing in the EditText, offer names already added
-                etName.setText(tvNameText.text)
-                btnAddNameToToday.performClick()
+                etName.text.append(tvNameText.text, ", ")
             }
 
             currentView.apply {
-                //if (position == 0) {
-                //    this.findViewById<View>(R.id.divider).visibility = View.INVISIBLE
-                //}
-
                 tvNameText.text = names[position]
             }
         } catch (e: Exception) {

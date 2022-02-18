@@ -3,7 +3,7 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
   <item
       android:id="@+id/mi_viewAllNames"
-      android:title="@string/showPrayerNeedsEnteredToday"
+      android:title="View all people"
       android:icon="@drawable/ic_view_all_names"
       app:showAsAction="always"/>
   <item

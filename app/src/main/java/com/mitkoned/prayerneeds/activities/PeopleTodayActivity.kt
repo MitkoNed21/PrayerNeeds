@@ -33,7 +33,6 @@ import java.util.*
 
 class PeopleTodayActivity : AppCompatActivity() {
     private lateinit var addNameBottomSheetDialog : BottomSheetDialogFragment
-    private lateinit var rvStoredNames_AddNameDialog : RecyclerView
 
     private lateinit var rvNamesAddedToday: RecyclerView
 
@@ -131,17 +130,19 @@ class PeopleTodayActivity : AppCompatActivity() {
         super.onDestroy()
     }
 
-    fun addNameToNamesAddedToday(name: String) {
-        if (name.isNotEmpty() && !namesAddedToday.contains(name)) {
-            namesAddedToday.add(name)
-            rvNamesAddedToday.adapter?.notifyItemInserted(namesAddedToday.lastIndex)
+    fun addNamesToNamesAddedToday(names: Collection<String>) {
+        for (name in names) {
+            if (name.isNotEmpty() && !namesAddedToday.contains(name)) {
+                namesAddedToday.add(name)
+                rvNamesAddedToday.adapter?.notifyItemInserted(namesAddedToday.lastIndex)
 
-            val fileName = filesDir.path + "/" + name + ".json"
-            try {
-                File(fileName).createNewFile()
-            } catch (e: Exception) {
-                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
-                //e.printStackTrace()
+                val fileName = filesDir.path + "/" + name + ".json"
+                try {
+                    File(fileName).createNewFile()
+                } catch (e: Exception) {
+                    Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+                    //e.printStackTrace()
+                }
             }
         }
     }
@@ -327,7 +328,6 @@ class PeopleTodayActivity : AppCompatActivity() {
             DialogFragment.STYLE_NORMAL,
             R.style.ThemeOverlay_App_BottomSheetDialog
         )
-        //rvStoredNames_AddNameDialog = addNameBottomSheetDialog.requireView().findViewById(R.id.rv_storedNames)
 
         //TODO: if app is quit or switching to another activity
         // (see if switching to another activity and going back
