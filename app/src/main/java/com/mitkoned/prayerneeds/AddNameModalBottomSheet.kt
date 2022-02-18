@@ -65,7 +65,9 @@ class AddNameModalBottomSheet : BottomSheetDialogFragment() {
             }
 
             val matchingNames = notAddedNamesList.filter {
-                it.startsWith(currentlyTypedName, true)
+                //TODO: Maybe add support for lowercase match
+                // would include removing name from list when added if name is lowercase
+                it.startsWith(currentlyTypedName)
             }
 
             shownNamesList.clear()

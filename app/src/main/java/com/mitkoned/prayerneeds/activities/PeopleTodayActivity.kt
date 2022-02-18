@@ -208,6 +208,34 @@ class PeopleTodayActivity : AppCompatActivity() {
     }
 
     fun addNamesToNamesAddedToday(names: Collection<String>) {
+        //TODO: Maybe add support for lowercase match
+        /*//For a lowercase match:
+
+        for (name in names) {
+            if (
+                name.isNotEmpty() &&
+                !namesAddedToday.contains(name) &&
+                !namesAddedToday.map{ it.lowercase() }.contains(name)
+            ) {
+                val lowercaseStoredNames = storedNames.map{ it.lowercase() }
+                if (lowercaseStoredNames.contains(name)) {
+                    val index = lowercaseStoredNames.indexOf(name)
+                    namesAddedToday.add(storedNames[index])
+                } else {
+                    namesAddedToday.add(name)
+                }
+                rvNamesAddedToday.adapter?.notifyItemInserted(namesAddedToday.lastIndex)
+
+                val fileName = filesDir.path + "/" + name + ".json"
+                try {
+                    File(fileName).createNewFile()
+                } catch (e: Exception) {
+                    Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+                    //e.printStackTrace()
+                }
+            }
+        }*/
+
         for (name in names) {
             if (name.isNotEmpty() && !namesAddedToday.contains(name)) {
                 namesAddedToday.add(name)
