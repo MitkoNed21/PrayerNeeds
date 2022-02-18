@@ -78,8 +78,8 @@ class AllTodayPrayerNeedsElementAdapter (private val fileNames: List<String>)
                         val items = jsonObject.getJSONArray("prayerNeeds")
                         val itemsLength = items.length()
 
-                        for ((index, _) in (0 until itemsLength).withIndex()) {
-                            val currentObject = items.getJSONObject(index)
+                        for (i in 0 until itemsLength) {
+                            val currentObject = items.getJSONObject(i)
 
                             val date = currentObject.getString("date")
                             val year = currentObject.getString("year")
@@ -94,9 +94,13 @@ class AllTodayPrayerNeedsElementAdapter (private val fileNames: List<String>)
                                 // that is not equal, stop (applies when prayer
                                 // needs are ordered by date descending)
                                 prayerNeedsDescriptionsList.add(description)
+                                prayerNeedsDescriptionsAdapter.notifyItemInserted(prayerNeedsDescriptionsList.size - 1)
                             }
+                        }
 
-                            prayerNeedsDescriptionsAdapter.notifyItemInserted(prayerNeedsDescriptionsList.size - 1)
+                        if (prayerNeedsDescriptionsList.size > 1 ){
+                            prayerNeedsDescriptionsList.reverse()
+                            prayerNeedsDescriptionsAdapter.notifyItemRangeChanged(0, prayerNeedsDescriptionsList.size)
                         }
                     }
                 } catch (e: Exception) {

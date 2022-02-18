@@ -37,7 +37,7 @@ class ViewTodaysPrayerNeedsFullscreenActivity : AppCompatActivity() {
             setDisplayShowTitleEnabled(false)
 
             //setBackgroundDrawable(ColorDrawable(Color.parseColor("#ff080808")))
-            displayOptions = displayOptions.or(ActionBar.DISPLAY_SHOW_CUSTOM)
+            //displayOptions = displayOptions.or(ActionBar.DISPLAY_SHOW_CUSTOM)
 
             appBarLayout.layoutParams = ConstraintLayout.LayoutParams(
                 ConstraintLayout.LayoutParams.MATCH_PARENT,
@@ -64,8 +64,8 @@ class ViewTodaysPrayerNeedsFullscreenActivity : AppCompatActivity() {
             val displaySize: Point
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
                 val insets = windowManager.currentWindowMetrics.windowInsets.getInsetsIgnoringVisibility(
-                    WindowInsets.Type.navigationBars() +
-                            WindowInsets.Type.displayCutout()
+                    WindowInsets.Type.navigationBars() or
+                    WindowInsets.Type.displayCutout()
                 )
 
                 val insetsWidth = insets.left + insets.right
@@ -79,7 +79,8 @@ class ViewTodaysPrayerNeedsFullscreenActivity : AppCompatActivity() {
             }
 
             Handler(Looper.getMainLooper()).post {
-                if (rvPrayerNeeds.computeVerticalScrollRange() > displaySize.y) {
+                // add a small buffer in case of a few pixels inaccuracy
+                if (rvPrayerNeeds.computeVerticalScrollRange() > displaySize.y - appBarLayout.height - 10) {
                     rvPrayerNeeds.updatePadding(bottom = displaySize.y)
                 }
             }

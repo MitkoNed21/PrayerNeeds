@@ -1,9 +1,14 @@
-package com.mitkoned.prayerneeds
+package com.mitkoned.prayerneeds.utilities
 
+import android.annotation.SuppressLint
+import kotlinx.coroutines.runBlocking
 import java.io.File
 import java.io.FileReader
 import java.io.FileWriter
 import java.nio.file.Path
+import java.util.Comparator
+import java.util.function.Predicate
+import java.util.function.UnaryOperator
 
 public fun writeFile(file: File, content: String, append: Boolean = false) {
     val exceptions = mutableListOf<Exception>()
@@ -83,6 +88,7 @@ private fun manageExceptions(exceptions: Array<Exception>) {
         *exceptions
     ).apply {
         fillInStackTrace()
+        exceptions.forEach { it.fillInStackTrace() }
     }
 }
 
@@ -101,5 +107,10 @@ class CombinedException(vararg exceptions: Exception): Throwable() {
         get() = errors
 
     override val message: String
-        get() = "Multiple exceptions were thrown!"
+        get() = "Multiple exceptions were thrown!\n\n" +
+                errors.joinToString("\n\n")
+}
+
+fun FAIL() {
+    throw Exception("Manually triggered exception.")
 }

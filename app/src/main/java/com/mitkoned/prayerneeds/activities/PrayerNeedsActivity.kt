@@ -1,6 +1,7 @@
 package com.mitkoned.prayerneeds.activities
 
 import android.content.Context
+import android.content.res.ColorStateList
 import android.graphics.Canvas
 import android.graphics.Color
 import android.graphics.Typeface
@@ -22,8 +23,10 @@ import androidx.recyclerview.widget.DividerItemDecoration
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.google.android.material.snackbar.Snackbar
 import com.mitkoned.prayerneeds.*
 import com.mitkoned.prayerneeds.adapters.PrayerNeedAdapter
+import com.mitkoned.prayerneeds.utilities.*
 import org.json.JSONArray
 import org.json.JSONObject
 import java.io.File
@@ -31,6 +34,8 @@ import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
 import kotlin.properties.Delegates
+
+private const val BULGARIAN_ACCENTED_I_REPLACEMENT_REGEX = "(?<![A-Za-z0-9А-Яа-я_])й(?![A-Za-z0-9А-Яа-я_])"
 
 class PrayerNeedsActivity : AppCompatActivity() {
     private var requestedNameIndex by Delegates.notNull<Int>()
@@ -46,16 +51,24 @@ class PrayerNeedsActivity : AppCompatActivity() {
     private val dataPrayerNeedsList = mutableListOf<PrayerNeed>()
     private val viewPrayerNeedsList = mutableListOf<PrayerNeed>()
 
+    private var sbPrayerNeedDeleted: Snackbar? = null
 
-    override fun onDestroy() {
-        dataPrayerNeedsList.sortWith(kotlin.Comparator(fun (first, second): Int {
+    override fun onPause() {
+        //if (sbPrayerNeedDeleted?.isShown == true)
+        //sbPrayerNeedDeleted?.dismiss()
+
+        // sort descending
+        dataPrayerNeedsList.sortWith { first, second ->
             val firstDate = dateFormat.parse(first.date + ";" + first.year)
             val secondDate = dateFormat.parse(second.date + ";" + second.year)
-            return -firstDate!!.compareTo(secondDate)
-        }))
+            return@sortWith -firstDate!!.compareTo(secondDate)
+        }
         saveFile()
-        super.onDestroy()
+
+        super.onPause()
     }
+
+    // ** TODO: Sometimes on Android 10 AVD it crashes when accessing add name or import(/export?)?
 
     private fun saveFile() {
         var errored = false
@@ -70,9 +83,15 @@ class PrayerNeedsActivity : AppCompatActivity() {
         }
 
         if (!errored) {
-            val prefs = getSharedPreferences(getString(R.string.lastUpdatedPrayerNeedsData), Context.MODE_PRIVATE)
+            val prefs = getSharedPreferences(
+                getString(R.string.lastUpdatedPrayerNeedsDataPrefName),
+                Context.MODE_PRIVATE
+            )
             with (prefs.edit()) {
-                putString("lastUpdatedPrayerNeedsData", Instant.now().toString())
+                putString(
+                    getString(R.string.lastUpdatedPrayerNeedsDataString),
+                    Instant.now().toString()
+                )
                 apply()
             }
         }
@@ -104,52 +123,105 @@ class PrayerNeedsActivity : AppCompatActivity() {
         val rvPrayerNeeds = this.findViewById<RecyclerView>(R.id.rv_prayerNeeds)
         val etPrayerNeedsText = this.findViewById<EditText>(R.id.et_prayerNeedsText)
 
-        val swipeGestures = object: PrayerNeedSwipeGestures(0, ItemTouchHelper.RIGHT) {
-            //TODO: Add support for deleting a prayer need here...
-            // otherwise would have to send dataPrayerNeedsList to adapter
+        val swipeGestures = object: PrayerNeedSwipeGestures(0, ItemTouchHelper.RIGHT or ItemTouchHelper.LEFT) {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
-                val tempAddTextValue = etPrayerNeedsText.text.toString()
-
                 val itemPos = viewHolder.layoutPosition
+                val adapterPosition = viewHolder.adapterPosition
 
-                val etPrayerNeedsTextParent = etPrayerNeedsText.parent as ConstraintLayout
-                val layoutParams = etPrayerNeedsText.layoutParams
+                when(direction) {
+                    ItemTouchHelper.LEFT -> {
+                        AlertDialog.Builder(this@PrayerNeedsActivity)
+                            .setTitle("Remove prayer need")
+                            .setPositiveButton("Yes") { _, _ ->
 
-                etPrayerNeedsTextParent.removeView(etPrayerNeedsText)
-                addButton.visibility = View.INVISIBLE
+                                val removedPrayerNeed = viewPrayerNeedsList.removeAt(adapterPosition)
+                                rvPrayerNeeds.adapter?.notifyItemRemoved(adapterPosition)
 
-                AlertDialog.Builder(this@PrayerNeedsActivity)
-                    .setPositiveButton("Save") { _, _ ->
-                        saveEditedPrayerNeed(itemPos, etPrayerNeedsText, rvPrayerNeeds)
+                                sbPrayerNeedDeleted = Snackbar.make(
+                                    rvPrayerNeeds, //viewHolder.itemView.parent as RecyclerView,
+                                    "Item removed.", //removedPrayerNeed + " was removed.",
+                                    Snackbar.LENGTH_LONG
+                                ).apply {
+                                    //setBackgroundTintList(Color.parseColor("#808080"))
+                                    // TODO: Make a layout for the Snackbar
+                                    setBackgroundTint(Color.parseColor("#808080"))
+                                    setActionTextColor(Color.parseColor("#F0F0F0"))
+                                    setTextColor(Color.parseColor("#F0F0F0"))
+
+                                    setAction("Undo") { // on click listener // TODO: if names doesn't contain the name.
+                                        viewPrayerNeedsList.add(adapterPosition, removedPrayerNeed)
+                                        rvPrayerNeeds.adapter?.notifyItemInserted(adapterPosition)
+                                    }
+                                    addCallback(object : Snackbar.Callback() {
+                                        override fun onDismissed(
+                                            transientBottomBar: Snackbar?,
+                                            event: Int
+                                        ) {
+                                            transientBottomBar?.removeCallback(this)
+                                            if (event != DISMISS_EVENT_ACTION) {
+                                                dataPrayerNeedsList.remove(removedPrayerNeed)
+                                            }
+                                            super.onDismissed(transientBottomBar, event)
+                                        }
+                                    })
+                                }
+
+                                sbPrayerNeedDeleted!!.show()
+                            }
+                            .setCancelable(true)
+                            .setMessage("Do you want to remove\n\"${viewPrayerNeedsList[itemPos].description}\"?")
+                            .create()
+                            .show()
+
+                        rvPrayerNeeds.adapter?.notifyItemChanged(itemPos)
                     }
-                    .setTitle("Edit")
-                    .setOnDismissListener {
-                        (etPrayerNeedsText.parent as ViewGroup).removeView(etPrayerNeedsText)
-                        etPrayerNeedsTextParent.addView(etPrayerNeedsText, layoutParams)
-                        addButton.visibility = View.VISIBLE
-                        etPrayerNeedsText.setText(tempAddTextValue)
+
+                    ItemTouchHelper.RIGHT -> {
+                        val tempAddTextValue = etPrayerNeedsText.text.toString()
+
+                        val clPrayerNeedsTextParent = etPrayerNeedsText.parent as ConstraintLayout
+                        val layoutParams = etPrayerNeedsText.layoutParams
+
+                        clPrayerNeedsTextParent.removeView(etPrayerNeedsText)
+                        addButton.visibility = View.INVISIBLE
+
+                        AlertDialog.Builder(this@PrayerNeedsActivity)
+                            .setPositiveButton("Save") { _, _ ->
+                                saveEditedPrayerNeed(itemPos, etPrayerNeedsText, rvPrayerNeeds)
+                            }
+                            .setTitle("Edit")
+                            .setOnDismissListener {
+                                (etPrayerNeedsText.parent as ViewGroup).removeView(etPrayerNeedsText)
+                                clPrayerNeedsTextParent.addView(etPrayerNeedsText, layoutParams)
+                                addButton.visibility = View.VISIBLE
+                                etPrayerNeedsText.setText(tempAddTextValue)
+                                //TODO: Temporary, change with resources
+                                etPrayerNeedsText.backgroundTintList =
+                                    ColorStateList.valueOf(Color.parseColor("#242424"))
+                            }
+                            .setIcon(AppCompatResources.getDrawable(
+                                this@PrayerNeedsActivity, R.drawable.ic_edit_prayer_need)
+                            )
+                            .setView(etPrayerNeedsText.apply {
+                                this.setText(viewPrayerNeedsList[itemPos].description)
+                            }).create().apply {
+                                setOnShowListener {
+                                    (etPrayerNeedsText.parent as ViewGroup).setPadding(20, 48, 20, 16)
+                                    //TODO: Temporary, change with resources
+                                    etPrayerNeedsText.backgroundTintList =
+                                        ColorStateList.valueOf(Color.parseColor("#303030"))
+                                }
+                                show()
+                            }
+
+                        rvPrayerNeeds.adapter?.notifyItemChanged(itemPos)
+                        //addText.text = viewPrayerNeedsList[itemPos].description
+
+                        //super.onSwiped(viewHolder, direction)
                     }
-                    .setIcon(AppCompatResources.getDrawable(
-                        this@PrayerNeedsActivity, R.drawable.ic_edit_prayer_need)
-                    )
-                    .setView(etPrayerNeedsText.apply {
-                        this.setText(viewPrayerNeedsList[itemPos].description)
-                    }).create().apply {
-                        setOnShowListener {
-                            (etPrayerNeedsText.parent as ViewGroup).setPadding(20, 48, 20, 16)
-                        }
-                        show()
-                    }
-
-                rvPrayerNeeds.adapter?.notifyItemChanged(itemPos)
-                //addText.text = viewPrayerNeedsList[itemPos].description
-
-
-                //super.onSwiped(viewHolder, direction)
+                }
             }
         }
-
-
 //        val swipeGestures = object: PrayerNeedSwipeGestures(0, ItemTouchHelper.LEFT or ItemTouchHelper.RIGHT) {
 //
 //        }
@@ -182,15 +254,15 @@ class PrayerNeedsActivity : AppCompatActivity() {
             val inputJsonString = readFile(File(fileName))
 
             //if (JsonReader(StringReader(inputJsonString)).hasNext())
-            if (inputJsonString != null && inputJsonString != "") {
+            if (!inputJsonString.isNullOrBlank()) {
                 val jsonObject = JSONObject(inputJsonString)
 
                 if (jsonObject.has("prayerNeeds")) {
                     val items = jsonObject.getJSONArray("prayerNeeds")
                     val itemsLength = items.length()
 
-                    for ((index, _) in (0 until itemsLength).withIndex()) {
-                        val currentObject = items.getJSONObject(index)
+                    for (i in 0 until itemsLength) {
+                        val currentObject = items.getJSONObject(i)
 
                         val date = currentObject.getString("date")
                         val year = currentObject.getString("year")
@@ -248,7 +320,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
         val enteredText = etView.text.trim().toString()
         if (enteredText == "") return
 
-        val desc = enteredText.replace(Regex("(?<![A-Za-z0-9А-Яа-я_])й(?![A-Za-z0-9А-Яа-я_])"), "ѝ")
+        val desc = enteredText.replace(Regex(BULGARIAN_ACCENTED_I_REPLACEMENT_REGEX), "ѝ")
 
         dataPrayerNeedsList[dataPrayerNeedsList.indexOf(viewPrayerNeedsList[itemPosition])].description = desc
         viewPrayerNeedsList[itemPosition].description = desc
@@ -261,7 +333,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
         val enteredText = etView.text.trim().toString()
         if (enteredText == "") return
 
-        val desc = enteredText.replace(Regex("(?<![A-Za-z0-9А-Яа-я_])й(?![A-Za-z0-9А-Яа-я_])"), "ѝ")
+        val desc = enteredText.replace(Regex(BULGARIAN_ACCENTED_I_REPLACEMENT_REGEX), "ѝ")
 
         val currentDate = Calendar.getInstance().time
 

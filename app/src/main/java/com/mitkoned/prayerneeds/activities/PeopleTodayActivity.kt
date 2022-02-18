@@ -1,9 +1,15 @@
 package com.mitkoned.prayerneeds.activities
 
+import android.Manifest
 import android.app.DownloadManager
 import android.app.ProgressDialog
 import android.content.*
+import android.content.pm.PackageManager
 import android.graphics.Color
+import android.net.Uri
+import android.os.*
+import android.provider.DocumentsContract
+import android.provider.MediaStore
 import androidx.appcompat.app.AppCompatActivity
 import android.os.Bundle
 import android.view.*
@@ -11,6 +17,12 @@ import android.widget.*
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AlertDialog
 import androidx.coordinatorlayout.widget.CoordinatorLayout
+import androidx.core.app.ActivityOptionsCompat
+import androidx.core.content.ContentProviderCompat
+import androidx.core.net.toUri
+import androidx.databinding.ObservableArrayList
+import androidx.databinding.ObservableList
+import androidx.documentfile.provider.DocumentFile
 import androidx.fragment.app.DialogFragment
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.LinearLayoutManager
@@ -22,14 +34,16 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.mitkoned.prayerneeds.*
+import com.mitkoned.prayerneeds.utilities.*
 import com.mitkoned.prayerneeds.adapters.AddNameDialogElementAdapter
 import com.mitkoned.prayerneeds.adapters.AddedNameTodayElementAdapter
-import org.json.JSONArray
 import org.json.JSONObject
 import java.io.*
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
+import java.text.DateFormat
+import java.time.format.DateTimeParseException
 
 class PeopleTodayActivity : AppCompatActivity() {
     private lateinit var addNameBottomSheetDialog : BottomSheetDialogFragment
@@ -38,6 +52,14 @@ class PeopleTodayActivity : AppCompatActivity() {
 
     private lateinit var namesAddedTodayFile: File
 
+    private val importManager by lazy {
+        ImportManager(this)
+    }
+
+    private val exportManager by lazy {
+        ExportManager(this)
+    }
+
     private val storedNames = mutableListOf<String>()
     private val namesAddedToday = mutableListOf<String>()
     private val dateFormat: SimpleDateFormat by lazy {
@@ -45,7 +67,6 @@ class PeopleTodayActivity : AppCompatActivity() {
     }
 
     private lateinit var crdlSnackbar: CoordinatorLayout
-    //private lateinit var crdlBottomSheet: CoordinatorLayout
 
     //private lateinit var prayerNeedsExportPath: String
     private val openFileActivityLauncher = registerForActivityResult(
@@ -54,23 +75,20 @@ class PeopleTodayActivity : AppCompatActivity() {
         if (result.resultCode == RESULT_OK) {
             val uri = result.data?.data
 
-            if (uri != null) { //Try to use StartActivityForResult() and .launch(intent) {Intent.ACTION_GET_CONTENT, data: MIME_TYPE} if bringing choosing
-                var fileContents = "" //TODO: change to lateinit var
+            if (uri != null) {
+                val jsonObject: JSONObject
                 try {
-                    contentResolver.openInputStream(uri)?.apply {
-                        fileContents = readBytes().decodeToString()
-                        close()
-                    }
+                    jsonObject = importManager.parseImportFile(uri)
                 } catch (e: Exception) {
-                    Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
-                    e.printStackTrace()
+                    Toast.makeText(this, e.message, Toast.LENGTH_SHORT).show()
                     return@registerForActivityResult
                 }
 
-                storePrayerNeedsFromFileContents(fileContents)
+                prepareImportData(jsonObject)
             }
         }
     }
+
 //    private val openFileActivityLauncher = registerForActivityResult(ActivityResultContracts.GetContent()) { uri ->
 //        if (uri != null) { //Try to use StartActivityForResult() and .launch(intent) {Intent.ACTION_GET_CONTENT, data: MIME_TYPE} if bringing choosing
 //            var fileContents = "" //TODO: change to lateinit var
@@ -90,29 +108,99 @@ class PeopleTodayActivity : AppCompatActivity() {
 //    }
 
 
-    /*private val selectExportFolderActivityLauncher = registerForActivityResult(
-        ActivityResultContracts.OpenDocumentTree()
-    ) { resultUri ->
-        val resultPath = resultUri.path
-        if (resultPath != null) {
-            //prayerNeedsExportPath = resultPath
-            val exportFile = File(prayerNeedsExportPath)
+    private val selectExportLocationActivityLauncher = registerForActivityResult(
+        ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        if (result.resultCode == RESULT_OK) {
+            val uri = result.data?.data
 
-            try {
-                val userFile = File(resultPath + "/" + exportFile.name)
-                if (userFile.createNewFile()) {
-                    exportFile.copyTo(userFile, false)
-                } else {
-                    Toast.makeText(this, "File $exportFile already exists in directory!", Toast.LENGTH_LONG).show()
+            if (uri != null) {
+                try {
+                    exportManager.exportPrayerNeeds(uri)
+                } catch (e: Throwable) {
+                    /**
+                     * Adapted from stack overflow question:
+                     * https://stackoverflow.com/questions/63579633/
+                     * answer by blackapps:
+                     * https://stackoverflow.com/a/63595048
+                     * */
+                    DocumentFile.fromSingleUri(this, uri)?.delete()
+                    Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+                    e.printStackTrace()
+                    return@registerForActivityResult
                 }
-            } catch (e: Exception) {
-                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
-                e.printStackTrace()
+
+                try {
+                    this.addContentView(
+                        crdlSnackbar, ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                        )
+                    )
+
+                    Snackbar.make(
+                        crdlSnackbar,
+                        "Export complete.",
+                        Snackbar.LENGTH_SHORT
+                    ).apply {
+                        animationMode = BaseTransientBottomBar.ANIMATION_MODE_SLIDE
+                        behavior = BaseTransientBottomBar.Behavior().apply {
+                            setSwipeDirection(SwipeDismissBehavior.SWIPE_DIRECTION_ANY)
+                            setDragDismissDistance(0.7f)
+                            setStartAlphaSwipeDistance(0.0f)
+                        }
+                        addCallback(object : Snackbar.Callback() {
+                            override fun onDismissed(
+                                transientBottomBar: Snackbar?,
+                                event: Int
+                            ) {
+                                super.onDismissed(transientBottomBar, event)
+                                val parent = crdlSnackbar.parent
+                                if (parent != null) {
+                                    (parent as ViewGroup).removeView(crdlSnackbar)
+                                }
+                            }
+                        })
+                        setAction("Show") { // on click listener
+                            try {
+                                val intent = Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)
+                                // TODO:
+                                if (intent.resolveActivityInfo(packageManager, 0) != null) {
+                                    startActivity(intent)
+                                    //dismiss()
+                                } else {
+                                    Toast.makeText(
+                                        this@PeopleTodayActivity,
+                                        "Could not open the file",
+                                        Toast.LENGTH_LONG
+                                    ).show()
+                                }
+                            } catch (e: Exception) {
+                                Toast.makeText(
+                                    this@PeopleTodayActivity,
+                                    e.toString(),
+                                    Toast.LENGTH_LONG
+                                ).show()
+                                e.printStackTrace()
+                            }
+                        }
+                        // TODO: Make a layout for the Snackbar
+                        //setBackgroundTintList(Color.parseColor("#808080"))
+                        setBackgroundTint(Color.parseColor("#808080"))
+                        setActionTextColor(Color.parseColor("#F0F0F0"))
+                        setTextColor(Color.parseColor("#F0F0F0"))
+                        show()
+                    }
+
+                } catch (e: Exception) {
+                    Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
+                    e.printStackTrace()
+                }
             }
         }
-    }*/
+    }
 
-    val items = mutableMapOf<String, MutableList<PrayerNeed>>()
+    //val items = mutableMapOf<String, MutableList<PrayerNeed>>()
 
     fun prayerNeedToJson(prayerNeed: PrayerNeed) : JSONObject {
         val result = JSONObject().apply {
@@ -159,56 +247,45 @@ class PeopleTodayActivity : AppCompatActivity() {
         writeFile(namesAddedTodayFile, result.toString(), false)
     }
 
-    private fun switchDataDirectories(s: String) {
-        try {
-            val testFolderName = "/bbbbb"
-            val folderName = "/Names2"
-
-            var switchTo = ""
-            var switchFrom = ""
-            if (s == "test") {
-                switchTo = testFolderName
-                switchFrom = folderName
-            } else {
-                switchTo = folderName
-                switchFrom = testFolderName
-            }
-
-            val dir = File(filesDir.path + switchFrom)
-            dir.mkdir()
-
-            filesDir.listFiles { file -> file.isFile }?.forEach {
-                if (!(it.name.contains("bbbb") || it.name.contains("Name"))) {
-                    it.copyTo(File(dir.path + "/" + it.name), true)
-                    it.delete()
-                }
-            }
-
-            File(filesDir.path + switchTo).listFiles { file -> file.isFile }?.forEach {
-                it.copyTo(File(filesDir.path + "/" + it.name))
-            }
-        } catch (e: Exception) {
-            Toast.makeText(this, e.toString(), Toast.LENGTH_SHORT).show()
-        }
-    }
-
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_people_today)
 
-        rvNamesAddedToday = findViewById(R.id.rv_namesAddedToday)
+        //val proj = arrayOf(
+        //    MediaStore.Downloads.REFERER_URI
+        //)
+        ////contentResolver.openOutputStream(downloadsDirUri)
+        //with(contentResolver.query(
+        //    downloadsDirUri,
+        //    proj,
+        //    null,
+        //    null,
+        //    null)) {
+        //    if (this != null) {
+        //        this.moveToFirst()
+        //        Toast.makeText(this@PeopleTodayActivity, "${this.getString(0)}", Toast.LENGTH_SHORT).show()
+        //    }
+        //}
 
-/*
-        switchDataDirectories("")
+        // TODO: import shows exports or choose file
+        val result = File(filesDir.path + "exports/").listFiles()
 
-        Toast.makeText(this, "/ "  +File(filesDir.path).listFiles()?.size.toString(), Toast.LENGTH_SHORT).show()
-        Toast.makeText(this, "/<files> "  +File(filesDir.path).listFiles { file -> file.isFile }?.size.toString(), Toast.LENGTH_SHORT).show()
+        toast(arrayOf<Any?>(
+            //Environment.getDataDirectory(),
+            //Environment.getExternalStorageDirectory(),
+            //filesDir.absolutePath,
+            //dateFormat.format(Instant.now()),
+            //dateFormat.format(Date.from(Instant.now())),
+            //dateFormat.format(Calendar.getInstance().toInstant()),
+            //dateFormat.format(Calendar.getInstance().time),
+            //getExternalFilesDir(Environment.DIRECTORY_DOWNLOADS),
+            //Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS),
+            //MediaStore.getExternalVolumeNames(this).first(),
+            //downloadsUri.toFile().canWrite()
+            //a?.isDirectory
+            //Environment.getExternalStorageDirectory().path
+        ))
 
-        Toast.makeText(this, "/Names2 " +File(filesDir.path + "/Names2").listFiles()?.size.toString(), Toast.LENGTH_SHORT).show()
-        Toast.makeText(this, "/bbbbb " +File(filesDir.path + "/bbbbb").listFiles()?.size.toString(), Toast.LENGTH_SHORT).show()
-
-        return
-        // */
         namesAddedTodayFile = File(filesDir.path + "/today.txt")
         if (!namesAddedTodayFile.exists()) {
             namesAddedTodayFile.createNewFile()
@@ -259,7 +336,7 @@ class PeopleTodayActivity : AppCompatActivity() {
 //        val a = BottomSheetDialog(this)
 
         val swipeGestures = object: ItemTouchHelper.SimpleCallback(
-            ItemTouchHelper.UP + ItemTouchHelper.DOWN, 0
+            ItemTouchHelper.UP or ItemTouchHelper.DOWN, 0
         ) {
             override fun onMove(
                 recyclerView: RecyclerView,
@@ -284,6 +361,7 @@ class PeopleTodayActivity : AppCompatActivity() {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {}
         }
 
+        val rvNamesAddedToday = findViewById<RecyclerView>(R.id.rv_namesAddedToday)
         rvNamesAddedToday.adapter = AddedNameTodayElementAdapter(namesAddedToday).apply {
             registerAdapterDataObserver(object : RecyclerView.AdapterDataObserver() {
                 override fun onChanged() {
@@ -329,23 +407,20 @@ class PeopleTodayActivity : AppCompatActivity() {
             R.style.ThemeOverlay_App_BottomSheetDialog
         )
 
+        //saveNamesAddedTodayFile()
+        //val directories = filesDir.listFiles(FileFilter { pathname -> pathname.isDirectory })
+//                if (ActivityCompat.checkSelfPermission(this,
+//                        Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+//
+//                }
+
         //TODO: if app is quit or switching to another activity
         // (see if switching to another activity and going back
-        // saves the names in the list) save today's added names
-        // unless list is empty,
+        // saves the names in the list) save today's added names.
         // if person has no prayer needs offered, keep name
         // save also date, upon opening, if date is different
         // than saved to file (or maybe last accessed)
         // (maybe move list of names to history) clear list
-
-        //TODO: second activity could have a button to
-        // show/hide prayer needs that are answered
-
-        //TODO: add a way to see all prayer needs ever offered
-        // it could be done like the main screen (list of names
-        // in alphabetical order, which when clicked launch
-        // another activity (could reuse MainActivity) with
-        // all the prayer needs offered by the person)
 
         crdlSnackbar = CoordinatorLayout(this).apply {
             layoutParams = RelativeLayout.LayoutParams(
@@ -353,7 +428,6 @@ class PeopleTodayActivity : AppCompatActivity() {
                 ViewGroup.LayoutParams.MATCH_PARENT
             )
         }
-
     }
 
     private fun getPrayerNeedsFromFile(file: File): MutableList<PrayerNeed> {
@@ -465,278 +539,263 @@ class PeopleTodayActivity : AppCompatActivity() {
                 this.startActivity(Intent(this, AllPeopleActivity::class.java))
             }
             R.id.mi_exportPrayerNeeds -> {
-                val allNames: List<String>
-                val namesJSONArray = JSONArray()
-
-                val files = filesDir.listFiles { file ->
-                    file.extension == "json"
-                }
-
-                if (files != null) {
-                    allNames = files
-                        .map { f -> f.nameWithoutExtension }
-                        .sortedBy { fn -> fn }
-
-                    for (name in allNames) {
-                        try {
-                            val fileName = File(filesDir.path + "/" + name + ".json")
-                            val fileContents = readFile(fileName)
-
-                            if (fileContents != null && fileContents != "") {
-                                namesJSONArray.put(JSONObject().apply {
-                                    put(name, fileContents)
-                                })
-                            }
-                        } catch (e: Exception) {
-                            Toast.makeText(this, "Could not export data for $name", Toast.LENGTH_SHORT).show()
-                            //Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
-                            e.printStackTrace()
-                        }
+                val intent = Intent(Intent.ACTION_CREATE_DOCUMENT).apply {
+                    type = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                        "text/xml"
+                    } else {
+                        "application/json"
                     }
 
-                    val resultJsonObject = JSONObject()
-                    resultJsonObject.put("exportDate", Instant.now().toString())
-                    resultJsonObject.put("prayerNeedsExport", namesJSONArray)
-                    val exportString = resultJsonObject.toString(2)
+                    //val downloadsUri = if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                    //    /**
+                    //     * Adapted from stack overflow question:
+                    //     * https://stackoverflow.com/questions/7908193/
+                    //     * answer by slkorolev, edited by Derlin:
+                    //     * https://stackoverflow.com/a/7908446
+                    //     * */
+                    //    val downloadsDir = Environment.getExternalStoragePublicDirectory(Environment.DIRECTORY_DOWNLOADS)
+                    //    downloadsDir.toUri()
+                    //} else {
+                    //    MediaStore.Downloads.getContentUri(
+                    //        MediaStore.getExternalVolumeNames(this@PeopleTodayActivity).first()
+                    //    )
+                    //}
 
-                    val exportsDir = File(filesDir.path + "/exports")
-
-                    try {
-                        if (!exportsDir.exists()) {
-                            exportsDir.mkdir()
-                        }
-
-                        val currentDateTime = Calendar.getInstance().time
-                        val exportDateFormat = SimpleDateFormat("yyyy-MM-dd-HH-mm-ss", Locale.US)
-                        var exportFile = File("${exportsDir.path}/prayer_needs_export-${exportDateFormat.format(currentDateTime)}.json")
-
-                        if (!exportFile.createNewFile()) {
-                            exportFile = File(
-                                exportFile.path.substringBeforeLast(".json") + "_2.json"
-                            )
-
-                            var count = 2
-                            while (!exportFile.createNewFile()) {
-                                exportFile = File(
-                                    exportFile.path.substringBeforeLast("_$count.json") + "_${count + 1}.json"
-                                )
-                                count++
-                            }
-                        }
-
-                        writeFile(exportFile, exportString, false)
-
-                        //val intent = Intent(Intent.ACTION_OPEN_DOCUMENT_TREE).apply {
-                        //    putExtra("filePath", exportFile.path)
-                        //}
-
-                        //prayerNeedsExportPath = exportFile.path
-
-                        //Uri.fromFile(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS))
-                        //selectExportFolderActivityLauncher.launch(
-                        //    Uri.fromFile(getExternalFilesDir(Environment.DIRECTORY_DOCUMENTS))
-                        //)
-
-                        val resultDirectory = File("/storage/emulated/0/Download/")
-
-                        if (resultDirectory != null) {
-                            //prayerNeedsExportPath = resultPath
-                            //val exportFile = File(prayerNeedsExportPath)
-                                //if (!resultDirectory.canWrite()) {
-                                //    enforceUriPermission(Uri.EMPTY,null,"",1,1,1, "TODO: message if thrown")
-                                //}
-                                //DownloadManager.Request(exportFile.toUri())
-                            try {
-                                //val userFile = File(resultPath/* + "/" + exportFile.name*/)
-                                //if (resultPath.isFile && resultPath.exists() && resultPath.listFiles()?.map{ f -> f.name }?.contains(exportFile.name) == true) {
-                                val savedFile = exportFile.copyTo(File(resultDirectory.path + "/" + exportFile.name), true)
-                                //} else {
-                                //    Toast.makeText(this, "File ${resultPath.path + exportFile.name} already exists in directory!", Toast.LENGTH_LONG).show()
-                                //}
-
-                                this.addContentView(crdlSnackbar, ViewGroup.LayoutParams(
-                                    ViewGroup.LayoutParams.MATCH_PARENT,
-                                    ViewGroup.LayoutParams.MATCH_PARENT,
-                                ))
-
-                                Snackbar.make(
-                                    crdlSnackbar,
-                                    //this.findViewById<View>(R.id.action_bar),
-                                    "File saved to ${savedFile.path}/${savedFile.name}",
-                                    Snackbar.LENGTH_INDEFINITE
-                                ).apply {
-                                    animationMode = BaseTransientBottomBar.ANIMATION_MODE_SLIDE
-                                    behavior = BaseTransientBottomBar.Behavior().apply {
-                                        setSwipeDirection(SwipeDismissBehavior.SWIPE_DIRECTION_START_TO_END)
-                                        setDragDismissDistance(0.7f)
-                                        setStartAlphaSwipeDistance(0.0f)
-                                    }
-                                    //addCallback(object: Snackbar.Callback() { }) onShow, onDismiss
-                                    addCallback(object: Snackbar.Callback() {
-                                        override fun onDismissed(
-                                            transientBottomBar: Snackbar?,
-                                            event: Int
-                                        ) {
-                                            super.onDismissed(transientBottomBar, event)
-                                            val parent = crdlSnackbar.parent
-                                            if (parent != null) {
-                                                (parent as ViewGroup).removeView(crdlSnackbar)
-                                            }
-                                        }
-                                    })
-                                    setAction("Show") { // on click listener
-                                        try {
-                                            val intent = Intent(DownloadManager.ACTION_VIEW_DOWNLOADS)
-                                            // TODO:
-                                            if (intent.resolveActivityInfo(packageManager, 0) != null) {
-                                                startActivity(intent)
-                                                //dismiss()
-                                            } else {
-                                                Toast.makeText(
-                                                    this@PeopleTodayActivity,
-                                                    "Could not open the file",
-                                                    Toast.LENGTH_LONG
-                                                ).show()
-                                            }
-                                        } catch (e: Exception) {
-                                            Toast.makeText(this@PeopleTodayActivity,
-                                                e.toString(),
-                                                Toast.LENGTH_LONG
-                                            ).show()
-                                            e.printStackTrace()
-                                        }
-                                    }
-                                    // TODO: Make a layout for the Snackbar
-                                    //setBackgroundTintList(Color.parseColor("#808080"))
-                                    setBackgroundTint(Color.parseColor("#808080"))
-                                    setActionTextColor(Color.parseColor("#F0F0F0"))
-                                    setTextColor(Color.parseColor("#F0F0F0"))
-                                    show()
-                                }
-
-                            } catch (e: Exception) {
-                                Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
-                                e.printStackTrace()
-                            }
-                        }
-                    } catch (e: Exception) {
-                        Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
-                        e.printStackTrace()
-                    }
+                    //putExtra(DocumentsContract.EXTRA_INITIAL_URI, downloadsUri)
+                    addCategory(Intent.CATEGORY_OPENABLE)
                 }
+
+                selectExportLocationActivityLauncher.launch(Intent.createChooser(intent, ""))
             }
             R.id.mi_importPrayerNeeds -> {
-                val intent = Intent(Intent.ACTION_GET_CONTENT)
-                intent.data = null
-                intent.type = "application/json"
-                openFileActivityLauncher.launch(intent)
+                AlertDialog.Builder(this)
+                    .setCancelable(true)
+                    .setTitle("Import prayer needs")
+                    .setMessage("Importing prayer needs will override the current prayer needs. " +
+                            "Do you want to continue?")
+                    .setPositiveButton("Yes") { _, _ ->
+                        val intent = Intent(Intent.ACTION_GET_CONTENT)
+
+                        if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
+                            intent.type = "text/xml"
+                        }
+                        else {
+                            intent.type = "*/*"
+                            intent.putExtra(Intent.EXTRA_MIME_TYPES, arrayOf("text/xml", "application/json"))
+                        }
+
+                        openFileActivityLauncher.launch(Intent.createChooser(intent, ""))
+                    }
+                    .setNegativeButton("No", null)
+                    .create()
+                    .show()
             }
         }
 
         return true
     }
 
-    private fun storePrayerNeedsFromFileContents(fileContents: String) {
-        if (fileContents != "")
-        {
-            try {
-                val importJson = JSONObject(fileContents)
-                val exportDate = Instant.parse(importJson.getString("exportDate"))
-                val lastUpdateDate = Instant.parse(
-                    getSharedPreferences(getString(R.string.lastUpdatedPrayerNeedsData), Context.MODE_PRIVATE)
-                        .getString("lastUpdatedPrayerNeedsData", Instant.MIN.toString())
+    private fun prepareImportData(importJson: JSONObject) {
+        try {
+            val exportDate = Instant.parse(importJson.getString("exportDate"))
+            val lastUpdateDate = Instant.parse(
+                getSharedPreferences(
+                    getString(R.string.lastUpdatedPrayerNeedsDataPrefName),
+                    Context.MODE_PRIVATE
+                ).getString(
+                    getString(R.string.lastUpdatedPrayerNeedsDataString),
+                    Instant.MIN.toString()
                 )
+            )
 
-                if (exportDate < lastUpdateDate) {
-                    //TODO: maybe check if file contents are the same before deleting?
-                    AlertDialog.Builder(this).apply {
-                        setMessage("The export in the file is older than current data. Continue?")
-                        setCancelable(true)
-                        setPositiveButton("Yes") { _, _ ->
-                            doImport(importJson)
-                        }
-                        setNegativeButton("No", null)
-                        create()
-                        show()
+            if (exportDate < lastUpdateDate) {
+                //TODO: maybe check if file contents are the same before deleting?
+                AlertDialog.Builder(this).apply {
+                    setMessage("The export in the file is older than current data. Continue?")
+                    setCancelable(true)
+                    setPositiveButton("Yes") { _, _ ->
+                        importPrayerNeeds(importJson)
                     }
-
-                    // TODO: examine:
-                    //MaterialStyledDatePickerDialog(this)
-                    //MaterialStyledDatePickerDialog(this).datePicker
-                    //DatePickerDialog(this).datePicker
-                } else {
-                    doImport(importJson)
+                    setNegativeButton("No", null)
+                    create()
+                    show()
                 }
-            } catch (e: Exception) {
-                Toast.makeText(this, e.message.toString(), Toast.LENGTH_LONG).show()
-                e.printStackTrace()
+
+                // TODO: look up:
+                //MaterialStyledDatePickerDialog(this)
+                //MaterialStyledDatePickerDialog(this).datePicker
+                //DatePickerDialog(this).datePicker
+            } else {
+                importPrayerNeeds(importJson)
             }
-        } else {
-            Toast.makeText(this, "Input file is empty!", Toast.LENGTH_SHORT).show()
+        } catch (e: Exception) {
+            Toast.makeText(this, e.message.toString(), Toast.LENGTH_LONG).show()
+            e.printStackTrace()
         }
     }
 
-    private fun doImport(importJson: JSONObject)
+    private fun importPrayerNeeds(importJson: JSONObject)
     {
-        try {
-            val names = importJson.getJSONArray("prayerNeedsExport")
-            val namesCount = names.length()
+        val importNames = importJson.optJSONArray("prayerNeedsExport")
 
-            filesDir.listFiles { f ->
-                f.extension == "json"
-            }?.forEach {
-                it.delete()
-            }
+        if (importNames == null) {
+            Toast.makeText(this, "File is not supported or is of an unsupported version!", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-            val pd = ProgressDialog(this).apply {
-                setCancelable(false)
-                this.setCanceledOnTouchOutside(false)
-                this.max = namesCount
-                this.progress = 0
-            }
+        val importNamesCount = importNames.length()
 
-            pd.show()
+        if (importNamesCount == 0) {
+            Toast.makeText(this, "Import has no names!", Toast.LENGTH_SHORT).show()
+            return
+        }
 
-            val loadedNames = mutableListOf<String>()
-            for (i in 0 until namesCount) {
-                val jsonPersonPrayerNeeds = names.getJSONObject(i)
-                val name = jsonPersonPrayerNeeds.names()!!.getString(0)
-                val newFile = File("${filesDir.path}/$name.json")
-                newFile.createNewFile()
+        val pd = ProgressDialog(this).apply {
+            setCancelable(true)
+            this.setProgressStyle(ProgressDialog.STYLE_HORIZONTAL)
+            this.setCanceledOnTouchOutside(false)
+            this.max = importNamesCount
+            this.progress = 0
+        }
 
-                writeFile(newFile, jsonPersonPrayerNeeds.getString(name), false)
-                loadedNames.add(name)
+        val importedNamesList = ObservableArrayList<String>()
 
-                pd.incrementProgressBy(1)
-            }
+        importedNamesList.addOnListChangedCallback(object:
+            ObservableList.OnListChangedCallback<ObservableList<String>>() {
 
+            override fun onChanged(sender: ObservableList<String>?) {}
 
-            namesAddedToday.minus(loadedNames).also { results ->
-                if (results.isNotEmpty()) {
-                    for (name in results) {
-                        val index = namesAddedToday.indexOf(name)
-                        namesAddedToday.removeAt(index)
-                        this.findViewById<RecyclerView>(R.id.rv_namesAddedToday)
-                            .adapter?.notifyItemRemoved(index)
+            override fun onItemRangeChanged(
+                sender: ObservableList<String>?,
+                positionStart: Int,
+                itemCount: Int
+            ) {}
+
+            override fun onItemRangeInserted(
+                sender: ObservableList<String>?,
+                positionStart: Int,
+                itemCount: Int
+            ) {
+                Handler(Looper.getMainLooper()).post {
+                    pd.incrementProgressBy(1)
+                }
+
+                if (importedNamesList.size == importNamesCount) {
+                    namesAddedToday.minus(importedNamesList).also { results ->
+                        if (results.isNotEmpty()) {
+                            for (name in results) {
+                                val index = namesAddedToday.indexOf(name)
+                                namesAddedToday.removeAt(index)
+                                this@PeopleTodayActivity.findViewById<RecyclerView>(R.id.rv_namesAddedToday)
+                                    .adapter?.notifyItemRemoved(index)
+                            }
+                        }
                     }
+
+                    pd.dismiss()
                 }
             }
 
-            val prefs = getSharedPreferences(
-                getString(R.string.lastUpdatedPrayerNeedsData),
-                Context.MODE_PRIVATE
-            )
-            with(prefs.edit()) {
-                putString("lastUpdatedPrayerNeedsData", importJson.getString("exportDate"))
-                apply()
-            }
+            override fun onItemRangeMoved(
+                sender: ObservableList<String>?,
+                fromPosition: Int,
+                toPosition: Int,
+                itemCount: Int
+            ) {}
+
+            override fun onItemRangeRemoved(
+                sender: ObservableList<String>?,
+                positionStart: Int,
+                itemCount: Int
+            ) {}
+        })
+
+        pd.show()
+
+        try {
+            importManager.importPrayerNeeds(importJson, importedNamesList)
+
+            updateDataDate(importJson.getString("exportDate"))
+
+            //TODO:
+            // ++ when making an import, show a dialog that import will replace currently existing data
+            // ---- Don't show again checkbox
+            // -- user could choose from created exports or choose a files
+            // ++ when exporting, show a dialog window explaining export will be made to Downloads folder
+            // ---- Don't show again checkbox?
+            // -- use snackbars instead of toasts
+            // -- change export structure to have (export v2):
+            // prayerNeedsExport
+            //   name, export
+            //     ... (as json object, not as string)
+            //Toast.makeText(this, "Import finished", Toast.LENGTH_SHORT).show()
+        } catch (e: UnsupportedOperationException) {
             pd.dismiss()
-            Toast.makeText(this, "Import finished", Toast.LENGTH_SHORT).show()
-        } catch (e: Exception) {
+            Toast.makeText(this, e.message, Toast.LENGTH_LONG).show()
+        }catch (e: Exception) {
+            pd.dismiss()
             Toast.makeText(this, e.toString(), Toast.LENGTH_LONG).show()
             e.printStackTrace()
         }
     }
+
+    private fun updateDataDate(date: Date = Calendar.getInstance().time) {
+        val dateString = dateFormat.format(date)
+
+        val prefs = getSharedPreferences(
+            getString(R.string.lastUpdatedPrayerNeedsDataPrefName),
+            Context.MODE_PRIVATE
+        )
+        with(prefs.edit()) {
+            putString(
+                getString(R.string.lastUpdatedPrayerNeedsDataString), dateString
+            )
+            apply()
+        }
+    }
+
+    private fun updateDataDate(instant: Instant) {
+        updateDataDate(Date.from(instant))
+    }
+
+    private fun updateDataDate(stringDate: String) {
+        try {
+            Instant.parse(stringDate)
+        }
+        catch (e: DateTimeParseException) {
+            val dateFormat = DateFormat.getDateInstance().apply {
+                isLenient = true
+            }
+
+            try {
+                val date = dateFormat.parse(stringDate)
+                if (date != null) {
+                    updateDataDate(date)
+                } else {
+                    updateDataDate()
+                }
+            } catch (e: Exception) {
+                updateDataDate()
+            }
+        }
+
+        val prefs = getSharedPreferences(
+            getString(R.string.lastUpdatedPrayerNeedsDataPrefName),
+            Context.MODE_PRIVATE
+        )
+        with(prefs.edit()) {
+            putString(
+                getString(R.string.lastUpdatedPrayerNeedsDataString), stringDate
+            )
+            apply()
+        }
+    }
+
+    fun toast(message: Any?) {
+        if (message is Iterable<*>) {
+            Toast.makeText(this, message.joinToString("\n\n"), Toast.LENGTH_LONG).show()
+        } else {
+            Toast.makeText(this, "$message", Toast.LENGTH_LONG).show()
+        }
+    }
 }
-
-
