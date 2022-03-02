@@ -8,12 +8,13 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
+import com.mitkoned.prayerneeds.BoxedBoolean
 import com.mitkoned.prayerneeds.PrayerNeed
 import com.mitkoned.prayerneeds.R
 
 class PrayerNeedAdapter (
     private val prayerNeeds: MutableList<PrayerNeed>,
-    private val hidingAnsweredPrayerNeeds: Boolean
+    private val hidingAnsweredPrayerNeeds: BoxedBoolean
 ) : RecyclerView.Adapter<PrayerNeedAdapter.PrayerNeedViewHolder>() {
     inner class PrayerNeedViewHolder(itemView: View) : RecyclerView.ViewHolder(itemView) {
         lateinit var foregroundView: ConstraintLayout
@@ -52,7 +53,7 @@ class PrayerNeedAdapter (
                 if (holder.adapterPosition != RecyclerView.NO_POSITION) {
                     prayerNeeds[holder.adapterPosition].answered = isChecked
 
-                    if (hidingAnsweredPrayerNeeds && isChecked) {
+                    if (hidingAnsweredPrayerNeeds.value && isChecked) {
                         prayerNeeds.removeAt(holder.adapterPosition)
                         this.notifyItemRemoved(holder.adapterPosition)
                     }

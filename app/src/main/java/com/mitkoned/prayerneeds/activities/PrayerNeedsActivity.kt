@@ -46,7 +46,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
         SimpleDateFormat(getString(R.string.dateFormat), Locale.US)
     }
     // Maybe convert back to BoxedBoolean
-    private var hidingAnsweredPrayerNeeds = false
+    private var hidingAnsweredPrayerNeeds = BoxedBoolean(false)
 
     private val dataPrayerNeedsList = mutableListOf<PrayerNeed>()
     private val viewPrayerNeedsList = mutableListOf<PrayerNeed>()
@@ -386,7 +386,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
             R.id.mi_toggleAnsweredPrayerNeedsVisibility -> {
                 val adapter = this.findViewById<RecyclerView>(R.id.rv_prayerNeeds).adapter!!
 
-                if (hidingAnsweredPrayerNeeds) {
+                if (hidingAnsweredPrayerNeeds.value) {
                     item.icon = AppCompatResources.getDrawable(this, R.drawable.ic_hide_answered_prayer_needs)
 
                     for ((index, pn) in dataPrayerNeedsList.withIndex()) {
@@ -396,7 +396,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
                         }
                     }
 
-                    hidingAnsweredPrayerNeeds = false
+                    hidingAnsweredPrayerNeeds.value = false
                 } else {
                     item.icon = AppCompatResources.getDrawable(this, R.drawable.ic_show_answered_prayer_needs)
 
@@ -407,7 +407,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
                         }
                     }
 
-                    hidingAnsweredPrayerNeeds = true
+                    hidingAnsweredPrayerNeeds.value = true
                 }
             }
         }

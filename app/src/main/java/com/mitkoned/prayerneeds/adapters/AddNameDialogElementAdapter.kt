@@ -59,7 +59,17 @@ class AddNameDialogElementAdapter (private val names: List<String>, private val 
             val btnAddNameToToday = addNameDialog.findViewById<Button>(R.id.btn_addNameToToday)!!
 
             clNameContainer.setOnClickListener {
-                etName.text.append(tvNameText.text, ", ")
+                val currentText = etName.text
+                val currentNames = currentText.split(",").toMutableList()
+                // if currentNames has 1 name, it is last
+                val newNames = currentNames.apply {
+                    removeAt(currentNames.lastIndex)
+                    add(tvNameText.text.toString())
+                }
+
+                etName.setText(newNames.joinToString(", "))
+                etName.text.append(", ")
+                etName.setSelection(etName.length())
             }
 
             currentView.apply {
