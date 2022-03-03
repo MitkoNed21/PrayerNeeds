@@ -73,9 +73,12 @@ class ImportManager(val context: Context) {
                 val names = json.getJSONArray("prayerNeedsExport")
                 val namesCount = names.length()
 
+                var lastId = 1
+
                 // TODO: maybe this should not be this way, but using it
                 //  makes the process "async"
                 //Handler(Looper.getMainLooper()).post {
+
                     for (i in 0 until namesCount) {
                         val jsonPersonPrayerNeeds = names.getJSONObject(i)
                         val name = jsonPersonPrayerNeeds
@@ -86,7 +89,30 @@ class ImportManager(val context: Context) {
                         val newFile = File("${context.filesDir.path}/${nameToImport}.json")
                         newFile.createNewFile()
 
-                        writeFile(newFile, jsonPersonPrayerNeeds.getString(name), false)
+                        val jsonObject = JSONObject(jsonPersonPrayerNeeds.getString(name))
+                        val prayerNeedsJsonArray = jsonObject.getJSONArray("prayerNeeds")
+
+                        val prayerNeedsCount = prayerNeedsJsonArray.length()
+
+                        val prayerNeedsList = mutableListOf<Pair<Date, JSONObject>>()
+                        for (j in 0 until prayerNeedsCount) {
+                            val dateString = prayerNeedsJsonArray.getJSONObject(j).let {
+                                it.getString("date") + ";" + it.getString("year")
+                            }
+                            val date = prayerNeedFullDateFormat.parse(dateString)
+                            prayerNeedsList.add(Pair(date!!, prayerNeedsJsonArray.getJSONObject(j)))
+                        }
+
+                        val sortedPrayerNeedsList = prayerNeedsList.sortedWith { first, second ->
+                            -first.first.compareTo(second.first)
+                        }
+
+                        sortedPrayerNeedsList.reversed().forEach {
+                            it.second.put("id", lastId)
+                            lastId++
+                        }
+
+                        writeFile(newFile, jsonObject.toString(2), false)
                         importedNamesList.add(nameToImport)
                 //    }
 //            namesAddedToday.clear()
@@ -100,6 +126,7 @@ class ImportManager(val context: Context) {
                 val names = json.getJSONArray("prayerNeedsExport")
                 val namesCount = names.length()
 
+                var lastId = 1
                 // TODO: maybe this should not be this way, but using it
                 //  makes the process "async"
                 //Handler(Looper.getMainLooper()).post {
@@ -108,22 +135,70 @@ class ImportManager(val context: Context) {
                     val jsonPersonPrayerNeeds = names.getJSONObject(i).getJSONArray("prayerNeeds")
                     val prayerNeedsCount = jsonPersonPrayerNeeds.length()
 
-                    val prayerNeedsMap = mutableMapOf<Date, JSONObject>()
+                    val prayerNeedsList = mutableListOf<Pair<Date, JSONObject>>()
                     for (j in 0 until prayerNeedsCount) {
                         val dateString = jsonPersonPrayerNeeds.getJSONObject(j).let {
                             it.getString("date") + ";" + it.getString("year")
                         }
                         val date = prayerNeedFullDateFormat.parse(dateString)
-                        prayerNeedsMap[date!!] = jsonPersonPrayerNeeds.getJSONObject(j)
+                        prayerNeedsList.add(Pair(date!!, jsonPersonPrayerNeeds.getJSONObject(j)))
                     }
 
-                    // sort descending
-                    val sortedPrayerNeedsMap = prayerNeedsMap.toSortedMap { first, second ->
-                        -first!!.compareTo(second)
+                    val sortedPrayerNeedsList = prayerNeedsList.sortedWith { first, second ->
+                        -first.first.compareTo(second.first)
+                    }
+
+                    sortedPrayerNeedsList.reversed().forEach {
+                        it.second.put("id", lastId)
+                        lastId++
                     }
 
                     val jsonObject = JSONObject().apply {
-                        put("prayerNeeds", JSONArray(sortedPrayerNeedsMap.map { it.value }))
+                        put("prayerNeeds", JSONArray(sortedPrayerNeedsList.map { it.second }))
+                    }
+
+
+                    val newFile = File("${context.filesDir.path}/${name}.json")
+                    newFile.createNewFile()
+
+                    writeFile(newFile, jsonObject.toString(2), false)
+                    importedNamesList.add(name)
+                    //    }
+//            namesAddedToday.clear()
+//            this.findViewById<RecyclerView>(R.id.rv_namesAddedToday)
+//                .adapter?.also {
+//                    it.notifyItemRangeRemoved(0, it.itemCount)
+//                }
+                }
+            }
+            3 -> {
+                val names = json.getJSONArray("prayerNeedsExport")
+                val namesCount = names.length()
+
+                // TODO: maybe this should not be this way, but using it
+                //  makes the process "async"
+                //Handler(Looper.getMainLooper()).post {
+                for (i in 0 until namesCount) {
+                    val name = names.getJSONObject(i).getString("name")
+                    val jsonPersonPrayerNeeds = names.getJSONObject(i).getJSONArray("prayerNeeds")
+                    val prayerNeedsCount = jsonPersonPrayerNeeds.length()
+
+                    val prayerNeedsList = mutableListOf<Pair<Date, JSONObject>>()
+                    for (j in 0 until prayerNeedsCount) {
+                        val dateString = jsonPersonPrayerNeeds.getJSONObject(j).let {
+                            it.getString("date") + ";" + it.getString("year")
+                        }
+                        val date = prayerNeedFullDateFormat.parse(dateString)
+                        prayerNeedsList.add(Pair(date!!, jsonPersonPrayerNeeds.getJSONObject(j)))
+                    }
+
+                    // sort descending
+                    val sortedPrayerNeedsList = prayerNeedsList.sortedWith { first, second ->
+                        -first.first.compareTo(second.first)
+                    }
+
+                    val jsonObject = JSONObject().apply {
+                        put("prayerNeeds", JSONArray(sortedPrayerNeedsList.map { it.second }))
                     }
 
 

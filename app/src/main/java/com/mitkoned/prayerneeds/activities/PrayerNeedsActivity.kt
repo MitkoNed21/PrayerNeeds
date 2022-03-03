@@ -103,6 +103,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
 
         for (item in dataPrayerNeedsList) {
             prayerNeedsJSONArray.put(JSONObject().apply {
+                put("id", item.id)
                 put("description", item.description)
                 put("date", item.date)
                 put("year", item.year)
@@ -264,12 +265,14 @@ class PrayerNeedsActivity : AppCompatActivity() {
                     for (i in 0 until itemsLength) {
                         val currentObject = items.getJSONObject(i)
 
+                        val id = currentObject.getInt("id")
                         val date = currentObject.getString("date")
                         val year = currentObject.getString("year")
                         val description = currentObject.getString("description")
                         val answered = currentObject.getBoolean("answered")
 
                         val loadedPrayerNeed = PrayerNeed(
+                            id = id,
                             description = description,
                             date = date,
                             year = year,
@@ -340,7 +343,27 @@ class PrayerNeedsActivity : AppCompatActivity() {
         val formattedCurrentDate = dateFormat.format(currentDate)
         val dateParts = formattedCurrentDate.split(';')
 
-        val newItem = PrayerNeed(desc, date = dateParts[0], year = dateParts[1], answered = false)
+        var nextId = filesDir.listFiles { file ->
+            file.extension == "json"
+        }?.map {
+            val contents = readFile(it)
+            if (!contents.isNullOrBlank()) {
+                val jsonObject = JSONObject(contents)
+                val personPrayerNeeds = jsonObject.getJSONArray("prayerNeeds")
+                val personPrayerNeedsCount = personPrayerNeeds.length()
+                val ids = mutableListOf<Int>()
+                for (i in 0 until personPrayerNeedsCount) {
+                    ids.add(personPrayerNeeds.getJSONObject(i).getInt("id"))
+                }
+                val max = ids.maxOrNull()
+                return@map if (max == null) 0 else max
+            }
+            return@map 0
+        }?.maxOrNull()
+        if (nextId == null) nextId = 0
+        nextId++
+
+        val newItem = PrayerNeed(id = nextId, desc, date = dateParts[0], year = dateParts[1], answered = false)
         dataPrayerNeedsList.add(0, newItem)
         viewPrayerNeedsList.add(0, newItem)
         rvMain.adapter?.notifyItemInserted(0)

@@ -193,6 +193,7 @@ class PeopleTodayActivity : AppCompatActivity() {
 
     fun prayerNeedToJson(prayerNeed: PrayerNeed) : JSONObject {
         val result = JSONObject().apply {
+            put("id", prayerNeed.id)
             put("date", prayerNeed.date)
             put("year", prayerNeed.year)
             put("description", prayerNeed.description)
@@ -476,6 +477,7 @@ class PeopleTodayActivity : AppCompatActivity() {
                     for (index in (0 until itemsLength)) {
                         val currentObject = items.getJSONObject(index)
 
+                        val id = currentObject.getInt("id")
                         val date = currentObject.getString("date")
                         val year = currentObject.getString("year")
                         val description = currentObject.getString("description")
@@ -483,6 +485,7 @@ class PeopleTodayActivity : AppCompatActivity() {
 
                         result.add(
                             PrayerNeed(
+                                id = id,
                                 description = description,
                                 date = date,
                                 year = year,

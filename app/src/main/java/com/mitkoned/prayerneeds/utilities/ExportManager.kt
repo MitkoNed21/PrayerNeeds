@@ -1,6 +1,5 @@
 package com.mitkoned.prayerneeds.utilities
 
-import android.R
 import android.content.Context
 import android.net.Uri
 import android.os.Build
@@ -16,7 +15,7 @@ import javax.xml.transform.TransformerFactory
 import javax.xml.transform.sax.SAXTransformerFactory
 import javax.xml.transform.sax.TransformerHandler
 
-private const val EXPORT_VERSION = 2
+private const val EXPORT_VERSION = 3
 
 class ExportManager (val context: Context) {
     /**
@@ -38,6 +37,7 @@ class ExportManager (val context: Context) {
             allNames = files
                 .map { f -> f.nameWithoutExtension }
                 .sortedBy { fn -> fn }
+            var lastId = 1
 
             for (name in allNames) {
                 try {
@@ -51,6 +51,15 @@ class ExportManager (val context: Context) {
                             val jsonObject = JSONObject(fileContents)
                             if (jsonObject.has("prayerNeeds")) {
                                 val items = jsonObject.getJSONArray("prayerNeeds")
+                                for (i in 0 until items.length()) {
+                                    val item = items.getJSONObject(i)
+                                    //if an item doesn't have an id, then
+                                    // it the import is v1 or v2.
+                                    if (!item.has("id")) {
+                                        item.put("id", lastId)
+                                        lastId++
+                                    }
+                                }
                                 put("prayerNeeds", items)
                             } else {
                                 throw InvalidObjectException("Object should have a \"prayerNeeds\" key!")
