@@ -26,6 +26,7 @@ import com.google.android.material.snackbar.Snackbar
 import com.mitkoned.prayerneeds.*
 import com.mitkoned.prayerneeds.utilities.*
 import com.mitkoned.prayerneeds.adapters.AddedNameTodayElementAdapter
+import com.mitkoned.prayerneeds.entities.PrayerNeed
 import org.json.JSONObject
 import java.io.*
 import java.text.SimpleDateFormat

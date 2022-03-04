@@ -26,6 +26,7 @@ import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.mitkoned.prayerneeds.*
 import com.mitkoned.prayerneeds.adapters.PrayerNeedAdapter
+import com.mitkoned.prayerneeds.entities.PrayerNeed
 import com.mitkoned.prayerneeds.utilities.*
 import org.json.JSONArray
 import org.json.JSONObject
@@ -33,6 +34,7 @@ import java.io.File
 import java.text.SimpleDateFormat
 import java.time.Instant
 import java.util.*
+import java.util.function.Function
 import kotlin.properties.Delegates
 
 private const val BULGARIAN_ACCENTED_I_REPLACEMENT_REGEX = "(?<![A-Za-z0-9А-Яа-я_])й(?![A-Za-z0-9А-Яа-я_])"
