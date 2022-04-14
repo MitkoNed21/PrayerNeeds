@@ -59,9 +59,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
 
         // sort descending
         dataPrayerNeedsList.sortWith { first, second ->
-            val firstDate = dateFormat.parse(first.date + ";" + first.year)
-            val secondDate = dateFormat.parse(second.date + ";" + second.year)
-            return@sortWith -firstDate!!.compareTo(secondDate)
+            return@sortWith -first.date.compareTo(second.date)
         }
         saveFile()
 
@@ -106,7 +104,6 @@ class PrayerNeedsActivity : AppCompatActivity() {
                 put("id", item.id)
                 put("description", item.description)
                 put("date", item.date)
-                put("year", item.year)
                 put("answered", item.answered)
             })
         }
@@ -122,7 +119,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
 
         val addButton = this.findViewById<Button>(R.id.btn_addPrayerNeed)
         val rvPrayerNeeds = this.findViewById<RecyclerView>(R.id.rv_prayerNeeds)
-        val etPrayerNeedsText = this.findViewById<EditText>(R.id.et_prayerNeedsText)
+        val etPrayerNeedsText = this.findViewById<EditText>(R.id.et_addPrayerNeed_prayerNeedText)
 
         val swipeGestures = object: PrayerNeedSwipeGestures(0, ItemTouchHelper.RIGHT or ItemTouchHelper.LEFT) {
             override fun onSwiped(viewHolder: RecyclerView.ViewHolder, direction: Int) {
@@ -266,8 +263,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
                         val currentObject = items.getJSONObject(i)
 
                         val id = currentObject.getInt("id")
-                        val date = currentObject.getString("date")
-                        val year = currentObject.getString("year")
+                        val date = currentObject.getLong("date")
                         val description = currentObject.getString("description")
                         val answered = currentObject.getBoolean("answered")
 
@@ -275,7 +271,6 @@ class PrayerNeedsActivity : AppCompatActivity() {
                             id = id,
                             description = description,
                             date = date,
-                            year = year,
                             answered = answered
                         )
 
@@ -325,8 +320,9 @@ class PrayerNeedsActivity : AppCompatActivity() {
 
         val desc = enteredText.replace(Regex(BULGARIAN_ACCENTED_I_REPLACEMENT_REGEX), "ѝ")
 
-        dataPrayerNeedsList[dataPrayerNeedsList.indexOf(viewPrayerNeedsList[itemPosition])].description = desc
-        viewPrayerNeedsList[itemPosition].description = desc
+        TODO("NOT FINISHED!")
+        //dataPrayerNeedsList[dataPrayerNeedsList.indexOf(viewPrayerNeedsList[itemPosition])].description = desc
+        //viewPrayerNeedsList[itemPosition].description = desc
 
         rvMain.adapter?.notifyItemChanged(itemPosition)
         //rvMain.scrollToPosition(0)
@@ -338,10 +334,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
 
         val desc = enteredText.replace(Regex(BULGARIAN_ACCENTED_I_REPLACEMENT_REGEX), "ѝ")
 
-        val currentDate = Calendar.getInstance().time
-
-        val formattedCurrentDate = dateFormat.format(currentDate)
-        val dateParts = formattedCurrentDate.split(';')
+        val currentDate = Calendar.getInstance().time.time
 
         var nextId = filesDir.listFiles { file ->
             file.extension == "json"
@@ -363,7 +356,8 @@ class PrayerNeedsActivity : AppCompatActivity() {
         if (nextId == null) nextId = 0
         nextId++
 
-        val newItem = PrayerNeed(id = nextId, desc, date = dateParts[0], year = dateParts[1], answered = false)
+        // TODO: NOT FINISHED!!
+        val newItem = PrayerNeed(id = nextId, desc, date = currentDate, answered = false)
         dataPrayerNeedsList.add(0, newItem)
         viewPrayerNeedsList.add(0, newItem)
         rvMain.adapter?.notifyItemInserted(0)
@@ -372,7 +366,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
         etView.text = ""
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         val appBarLayout = View.inflate(this, R.layout.layout__top_bar_all_prayer_needs, null)
 
         supportActionBar?.apply {

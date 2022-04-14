@@ -7,6 +7,7 @@ import android.widget.TextView
 import android.widget.Toast
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
+import com.mitkoned.prayerneeds.PrayerNeed
 import com.mitkoned.prayerneeds.R
 import org.json.JSONObject
 import java.io.FileReader
@@ -81,15 +82,12 @@ class AllTodayPrayerNeedsElementAdapter (private val fileNames: List<String>)
                         for (i in 0 until itemsLength) {
                             val currentObject = items.getJSONObject(i)
 
-                            val date = currentObject.getString("date")
-                            val year = currentObject.getString("year")
+                            val date = currentObject.getLong("date")
                             val description = currentObject.getString("description")
 
-                            val currentDate = Calendar.getInstance().time
-                            val currentDateString = dateFormat.format(currentDate)
-                            val prayerNeedDateString = "$date;$year"
+                            val currentDate = Calendar.getInstance().time.time
 
-                            if (currentDateString == prayerNeedDateString) {
+                            if (currentDate == date) {
                                 //TODO: could do optimizing: when reached date
                                 // that is not equal, stop (applies when prayer
                                 // needs are ordered by date descending)

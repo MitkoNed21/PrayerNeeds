@@ -18,6 +18,10 @@ import javax.xml.transform.sax.TransformerHandler
 private const val EXPORT_VERSION = 3
 
 class ExportManager (val context: Context) {
+
+    // TODO: SHOULD UPDATE!!!
+    //  DATE IS A LONG!!
+
     /**
      * Exports prayer needs to provided [uri] directory.
      * Returns a list with names that were not

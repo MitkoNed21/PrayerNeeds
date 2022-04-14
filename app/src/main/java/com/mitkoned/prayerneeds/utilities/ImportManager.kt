@@ -19,6 +19,8 @@ import javax.xml.parsers.DocumentBuilderFactory
  */
 class ImportManager(val context: Context) {
 
+    // TODO: ALL ARE BROKEN!!!
+    //  DATE IS A LONG!!
     private val prayerNeedFullDateFormat by lazy {
         SimpleDateFormat(context.getString(R.string.dateFormat), Locale.US)
     }

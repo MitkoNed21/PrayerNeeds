@@ -60,7 +60,7 @@ class AddNameDialogElementAdapter (private val names: List<String>, private val 
 
             clNameContainer.setOnClickListener {
                 val currentText = etName.text
-                val currentNames = currentText.split(",").toMutableList()
+                val currentNames = currentText.split(",").map{ it.trim() }.toMutableList()
                 // if currentNames has 1 name, it is last
                 val newNames = currentNames.apply {
                     removeAt(currentNames.lastIndex)

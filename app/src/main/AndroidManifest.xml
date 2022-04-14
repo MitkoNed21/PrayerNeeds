@@ -1,17 +1,29 @@
 <?xml version="1.0" encoding="utf-8"?>
 <manifest xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
     package="com.mitkoned.prayerneeds">
 
     <application
-        android:isGame="false"
         android:allowBackup="true"
+        android:appCategory="productivity"
         android:fullBackupOnly="true"
         android:icon="@mipmap/ic_launcher"
+        android:isGame="false"
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.PrayerNeeds"
-        android:appCategory="productivity">
+        tools:ignore="LockedOrientationActivity">
+        <activity
+            android:name=".ui.MainActivity"
+            android:screenOrientation="sensorPortrait"
+            android:exported="true">
+            <intent-filter>
+                <action android:name="android.intent.action.MAIN" />
+
+                <category android:name="android.intent.category.LAUNCHER" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activities.ViewTodaysPrayerNeedsFullscreenActivity"
             android:configChanges="orientation|keyboardHidden|screenSize"
@@ -22,13 +34,9 @@
             android:name=".activities.PrayerNeedsActivity"
             android:screenOrientation="sensorPortrait" />
         <activity
-            android:name=".activities.PeopleTodayActivity"
+            android:name=".ui.PeopleTodayActivity"
             android:screenOrientation="sensorPortrait">
-            <intent-filter>
-                <action android:name="android.intent.action.MAIN" />
 
-                <category android:name="android.intent.category.LAUNCHER" />
-            </intent-filter>
         </activity>
         <activity
             android:name=".activities.AllPeopleActivity"

@@ -15,7 +15,7 @@ import com.mitkoned.prayerneeds.adapters.AddNameDialogElementAdapter
 import androidx.recyclerview.widget.RecyclerView
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.core.widget.doOnTextChanged
-import com.mitkoned.prayerneeds.activities.PeopleTodayActivity
+import com.mitkoned.prayerneeds.ui.PeopleTodayActivity
 
 class AddNameModalBottomSheet : BottomSheetDialogFragment() {
     private lateinit var rvStoredNames: RecyclerView

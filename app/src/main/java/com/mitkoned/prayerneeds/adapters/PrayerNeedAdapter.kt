@@ -44,14 +44,17 @@ class PrayerNeedAdapter (
 
             currentView.apply {
                 tvDesc.text = prayerNeeds[position].description
-                tvDate.text = prayerNeeds[position].date
-                tvYear.text = prayerNeeds[position].year
+                val dateString = prayerNeeds[position].dateCustomFormatted
+                val dateParts = dateString.split(';')
+                tvDate.text = dateParts[0]
+                tvYear.text = dateParts[1]
                 cbAnswered.isChecked = prayerNeeds[position].answered
             }
 
             cbAnswered.setOnCheckedChangeListener { _, isChecked ->
                 if (holder.adapterPosition != RecyclerView.NO_POSITION) {
-                    prayerNeeds[holder.adapterPosition].answered = isChecked
+                    // TODO: FIX
+                    //[holder.adapterPosition].answered = isChecked
 
                     if (hidingAnsweredPrayerNeeds.value && isChecked) {
                         prayerNeeds.removeAt(holder.adapterPosition)

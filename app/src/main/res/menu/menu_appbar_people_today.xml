@@ -14,7 +14,7 @@
   <item
       android:id="@+id/mi_addName"
       android:title="Add name"
-      android:icon="@drawable/ic_add_name"
+      android:icon="@drawable/ic_add"
       app:showAsAction="always"/>
   <item
       android:id="@+id/mi_exportPrayerNeeds"

@@ -10,18 +10,18 @@ import com.mitkoned.prayerneeds.adapters.AddedNamesElementAdapter
 import com.mitkoned.prayerneeds.R
 
 class AllPeopleActivity : AppCompatActivity() {
-    private lateinit var rv_allStoredPeople: RecyclerView
+    private lateinit var rvAllStoredPeople: RecyclerView
 
     private val names = mutableListOf<String>()
 
-    @ExperimentalStdlibApi
+    //@ExperimentalStdlibApi
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.activity_view_all_people)
 
-        rv_allStoredPeople = findViewById(R.id.rv_allStoredPeople)
-        rv_allStoredPeople.adapter = AddedNamesElementAdapter(names)
-        rv_allStoredPeople.layoutManager = LinearLayoutManager(this)
+        rvAllStoredPeople = findViewById(R.id.rv_allStoredPeople)
+        rvAllStoredPeople.adapter = AddedNamesElementAdapter(names)
+        rvAllStoredPeople.layoutManager = LinearLayoutManager(this)
 
         try {
             val files = filesDir.listFiles()
@@ -36,7 +36,7 @@ class AllPeopleActivity : AppCompatActivity() {
 
                 for (fn in fileNames) {
                     names.add(fn)
-                    rv_allStoredPeople.adapter?.notifyItemInserted(names.size - 1)
+                    rvAllStoredPeople.adapter?.notifyItemInserted(names.size - 1)
                 }
             }
         } catch (e: Exception) {
@@ -45,7 +45,7 @@ class AllPeopleActivity : AppCompatActivity() {
         }
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         this.title = "All names"
         return super.onCreateOptionsMenu(menu)
     }

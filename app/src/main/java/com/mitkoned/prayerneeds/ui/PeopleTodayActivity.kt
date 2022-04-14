@@ -1,4 +1,4 @@
-package com.mitkoned.prayerneeds.activities
+package com.mitkoned.prayerneeds.ui
 
 import android.app.DownloadManager
 import android.app.ProgressDialog
@@ -24,6 +24,8 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.mitkoned.prayerneeds.*
+import com.mitkoned.prayerneeds.activities.AllPeopleActivity
+import com.mitkoned.prayerneeds.activities.ViewTodaysPrayerNeedsFullscreenActivity
 import com.mitkoned.prayerneeds.utilities.*
 import com.mitkoned.prayerneeds.adapters.AddedNameTodayElementAdapter
 import org.json.JSONObject
@@ -195,7 +197,6 @@ class PeopleTodayActivity : AppCompatActivity() {
         val result = JSONObject().apply {
             put("id", prayerNeed.id)
             put("date", prayerNeed.date)
-            put("year", prayerNeed.year)
             put("description", prayerNeed.description)
             put("answered", prayerNeed.answered)
         }
@@ -478,8 +479,7 @@ class PeopleTodayActivity : AppCompatActivity() {
                         val currentObject = items.getJSONObject(index)
 
                         val id = currentObject.getInt("id")
-                        val date = currentObject.getString("date")
-                        val year = currentObject.getString("year")
+                        val date = currentObject.getLong("date")
                         val description = currentObject.getString("description")
                         val answered = currentObject.getBoolean("answered")
 
@@ -488,7 +488,6 @@ class PeopleTodayActivity : AppCompatActivity() {
                                 id = id,
                                 description = description,
                                 date = date,
-                                year = year,
                                 answered = answered
                             )
                         )
@@ -503,7 +502,7 @@ class PeopleTodayActivity : AppCompatActivity() {
         return result
     }
 
-    override fun onCreateOptionsMenu(menu: Menu?): Boolean {
+    override fun onCreateOptionsMenu(menu: Menu): Boolean {
         menuInflater.inflate(R.menu.menu_appbar_people_today, menu)
         return true
     }
