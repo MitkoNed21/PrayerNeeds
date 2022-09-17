@@ -9,7 +9,7 @@ android {
 
     defaultConfig {
         applicationId "com.mitkoned.prayerneeds"
-        minSdkVersion 28
+        minSdkVersion 26
         targetSdkVersion 30
         versionCode 5
         versionName "0.2.4"
