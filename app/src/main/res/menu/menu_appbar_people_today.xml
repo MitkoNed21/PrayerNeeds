@@ -3,27 +3,36 @@
     xmlns:app="http://schemas.android.com/apk/res-auto">
   <item
       android:id="@+id/mi_viewAllNames"
-      android:title="View all people"
       android:icon="@drawable/ic_view_all_names"
-      app:showAsAction="always"/>
+      android:title="View all people"
+      app:iconTint="?android:attr/textColor"
+      app:showAsAction="always" />
   <item
       android:id="@+id/mi_showPrayerNeedsEnteredToday"
-      android:title="@string/showPrayerNeedsEnteredToday"
       android:icon="@drawable/ic_todays_prayer_needs"
-      app:showAsAction="always"/>
+      android:iconTint="?android:attr/textColor"
+      android:title="@string/showPrayerNeedsEnteredToday"
+      app:iconTint="?android:attr/textColor"
+      app:showAsAction="always" />
   <item
       android:id="@+id/mi_addName"
-      android:title="Add name"
       android:icon="@drawable/ic_add_name"
-      app:showAsAction="always"/>
+      android:iconTint="?android:attr/textColor"
+      android:title="Add name"
+      app:iconTint="?android:attr/textColor"
+      app:showAsAction="always" />
   <item
       android:id="@+id/mi_exportPrayerNeeds"
-      android:title="Export prayer needs"
       android:icon="@drawable/ic_export_prayer_needs"
-      app:showAsAction="never"/>
+      android:iconTint="?android:attr/textColor"
+      android:title="Export prayer needs"
+      app:iconTint="?android:attr/textColor"
+      app:showAsAction="never" />
   <item
       android:id="@+id/mi_importPrayerNeeds"
-      android:title="Import prayer needs"
       android:icon="@drawable/ic_import_prayer_needs"
-      app:showAsAction="never"/>
+      android:iconTintMode="src_over"
+      android:title="Import prayer needs"
+      app:iconTint="?android:attr/textColor"
+      app:showAsAction="never" />
 </menu>

@@ -13,6 +13,25 @@
     <color name="light_blue_A400">#FF00B0FF</color>
     <color name="black_overlay">#66000000</color>
 
-    <color name="backgroundColor">#FF080808</color>
+    <color name="backgroundColor_Night">#FF080808</color>
+    <color name="itemBackgroundColor_Night">#FF202020</color>
+    <color name="editTextBackgroundColor_Night">#FF242424</color>
+    <color name="dialogBackground_Night">#FF141414</color>
+
+    <color name="dialog_nameContainerColor_Night">#FF282828</color>
+    <color name="dialog_nameContainerTextColor_Night">#DFFFFFFF</color>
+    <color name="todayPrayerNeeds_personName_Night">#E7FFFFFF</color>
+
+    <color name="backgroundColor_Light">#FFF8F8F8</color>
+    <color name="itemBackgroundColor_Light">#FFE0E0E0</color>
+    <color name="editTextBackgroundColor_Light">#FFDBDBDB</color>
+    <color name="dialogBackground_Light">#FFECECEC</color>
+
+    <color name="dialog_nameContainerColor_Light">#FFD8D8D8</color>
+    <color name="dialog_nameContainerTextColor_Light">#DF000000</color>
+    <color name="todayPrayerNeeds_personName_Light">#E7000000</color>
+
+
+
     <color name="backgroundColorDialog">#FF424242</color>
 </resources>

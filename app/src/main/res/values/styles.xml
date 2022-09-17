@@ -1,7 +1,12 @@
 <resources>
+    <style name="Widget.Theme.PrayerNeeds.ActionBar.FullScreen.Night" parent="Widget.AppCompat.ActionBar">
+        <item name="android:background">@color/backgroundColor_Night</item>
+        <item name="android:theme">@style/Theme.PrayerNeeds</item>
+    </style>
 
-    <style name="Widget.Theme.PrayerNeeds.ActionBar.FullScreen" parent="Widget.AppCompat.ActionBar">
-        <item name="android:background">@color/backgroundColor</item>
+    <style name="Widget.Theme.PrayerNeeds.ActionBar.FullScreen.Light" parent="Widget.AppCompat.ActionBar">
+        <item name="android:background">@color/backgroundColor_Light</item>
+        <item name="android:theme">@style/Theme.PrayerNeeds</item>
     </style>
 
     <style name="Widget.Theme.PrayerNeeds.ButtonBar.Fullscreen" parent="">
@@ -18,9 +23,7 @@
         <item name="behavior_halfExpandedRatio">0.707</item>
     </style>
 
-
     <style name="BottomSheetStyle" parent="Widget.Design.BottomSheet.Modal">
-        <item name="android:background">@drawable/shape_bottom_sheet_dialog</item>
-        <item name="android:backgroundTint">#141414</item>
+        <item name="android:theme">@style/Theme.PrayerNeeds.BottomSheetStyle</item>
     </style>
 </resources>

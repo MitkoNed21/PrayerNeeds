@@ -197,8 +197,8 @@ class PrayerNeedsActivity : AppCompatActivity() {
                                 addButton.visibility = View.VISIBLE
                                 etPrayerNeedsText.setText(tempAddTextValue)
                                 //TODO: Temporary, change with resources
-                                etPrayerNeedsText.backgroundTintList =
-                                    ColorStateList.valueOf(Color.parseColor("#242424"))
+                                //etPrayerNeedsText.backgroundTintList =
+                                //    ColorStateList.valueOf(Color.parseColor("#242424"))
                             }
                             .setIcon(AppCompatResources.getDrawable(
                                 this@PrayerNeedsActivity, R.drawable.ic_edit_prayer_need)
@@ -209,8 +209,8 @@ class PrayerNeedsActivity : AppCompatActivity() {
                                 setOnShowListener {
                                     (etPrayerNeedsText.parent as ViewGroup).setPadding(20, 48, 20, 16)
                                     //TODO: Temporary, change with resources
-                                    etPrayerNeedsText.backgroundTintList =
-                                        ColorStateList.valueOf(Color.parseColor("#303030"))
+                                    //etPrayerNeedsText.backgroundTintList =
+                                    //    ColorStateList.valueOf(Color.parseColor("#303030"))
                                 }
                                 show()
                             }
