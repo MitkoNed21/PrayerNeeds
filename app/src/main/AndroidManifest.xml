@@ -3,7 +3,9 @@
     xmlns:tools="http://schemas.android.com/tools"
     package="com.mitkoned.prayerneeds">
 
+    <!--  TODO: Unknown attributes  -->
     <application
+        android:name=".Application"
         android:allowBackup="true"
         android:appCategory="productivity"
         android:fullBackupOnly="true"

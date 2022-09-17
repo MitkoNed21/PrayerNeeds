@@ -1,11 +1,13 @@
 <resources>
     <string name="app_name">Prayer Needs</string>
     <string name="showPrayerNeedsEnteredToday">Show prayer needs entered today</string>
-    <string name="dateFormat">d MMM;yyyy</string>
-    <string name="title_activity_view_todays_prayer_needs_fullscreen">FullscreenActivity</string>
-    <string name="dummy_button">Dummy Button</string>
-    <string name="dummy_content">DUMMY\nCONTENT</string>
+    <string name="dateFormat" translatable="false">d MMM;yyyy</string>
+    <string name="title_activity_view_todays_prayer_needs_fullscreen" translatable="false">FullscreenActivity</string>
+    <string name="dummy_button" translatable="false">Dummy Button</string>
+    <string name="dummy_content" translatable="false">DUMMY\nCONTENT</string>
+    <string name="lastUpdatedPrayerNeedsDataPrefName" translatable="false">com.mitkoned.prayerneeds.LAST_UPDATED_PRAYER_NEEDS_DATA</string>
+    <string name="lastUpdatedPrayerNeedsDataString" translatable="false">lastUpdatedPrayerNeedsData</string>
+    <!-- TODO: Remove or change this placeholder text -->
+    <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="prayerGatheringText">Молитвено събиране</string>
-    <string name="lastUpdatedPrayerNeedsDataPrefName">com.mitkoned.prayerneeds.LAST_UPDATED_PRAYER_NEEDS_DATA</string>
-    <string name="lastUpdatedPrayerNeedsDataString">lastUpdatedPrayerNeedsData</string>
 </resources>
