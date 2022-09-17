@@ -26,7 +26,7 @@
         android:layout_width="match_parent"
         android:layout_height="1dp"
         android:layout_marginBottom="77dp"
-        android:background="#242424"
+        android:background="?attr/editTextBackground"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toEndOf="parent" />
@@ -38,7 +38,7 @@
         android:layout_marginStart="17dp"
         android:layout_marginBottom="16dp"
         android:background="@drawable/shape_rounded_rectangle"
-        android:backgroundTint="#242424"
+        android:backgroundTint="?attr/editTextBackground"
         android:inputType="textMultiLine|text|textCapSentences"
         android:lineHeight="20sp"
         android:minHeight="40sp"

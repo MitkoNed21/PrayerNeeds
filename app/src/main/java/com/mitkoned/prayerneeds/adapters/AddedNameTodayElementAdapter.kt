@@ -2,6 +2,7 @@ package com.mitkoned.prayerneeds.adapters
 
 import android.content.Intent
 import android.content.res.ColorStateList
+import android.content.res.Resources
 import android.graphics.Color
 import android.view.*
 import android.widget.*
@@ -100,9 +101,23 @@ class AddedNameTodayElementAdapter (private val names: MutableList<String>)
                                     }
                                     //.setBackgroundTintList(Color.parseColor("#808080"))
                                     // TODO: Make a layout for the Snackbar
-                                    .setBackgroundTint(Color.parseColor("#808080"))
-                                    .setActionTextColor(Color.parseColor("#F0F0F0"))
-                                    .setTextColor(Color.parseColor("#F0F0F0"))
+                                    // TODO: Don't use hardcoded value
+                                    // TODO: Don't deprecated element
+                                    // TODO: Use proper colors
+                                    .setBackgroundTint(
+                                        currentView.context.resources
+                                            .getColor(R.color.backgroundColor_Light)
+                                    )
+                                    .setActionTextColor(
+                                        currentView.context.resources
+                                            .getColor(R.color.dialog_nameContainerTextColor_Light)
+                                    )
+                                    .setTextColor(
+                                        currentView.context.resources
+                                            .getColor(R.color.dialog_nameContainerTextColor_Light)
+                                    )
+                                    //.setActionTextColor(Color.parseColor("#F0F0F0"))
+                                    //.setTextColor(Color.parseColor("#F0F0F0"))
                                     .show()
 
                                 true

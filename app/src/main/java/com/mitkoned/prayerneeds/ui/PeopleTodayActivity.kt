@@ -594,8 +594,9 @@ class PeopleTodayActivity : AppCompatActivity() {
                     .setPositiveButton("Yes") { _, _ ->
                         val intent = Intent(Intent.ACTION_GET_CONTENT)
 
+                        // TODO: Instead check if json is recognized
                         if (Build.VERSION.SDK_INT <= Build.VERSION_CODES.P) {
-                            intent.type = "text/xml"
+                            intent.type = "*/*"
                         }
                         else {
                             intent.type = "*/*"

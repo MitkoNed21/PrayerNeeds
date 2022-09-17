@@ -102,7 +102,7 @@
         android:id="@+id/cl_prayerNeedForeground"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:background="@color/backgroundColor"
+        android:background="?android:attr/colorBackground"
         android:minHeight="88dp"
         android:paddingLeft="0dp"
         android:paddingTop="10dp"
