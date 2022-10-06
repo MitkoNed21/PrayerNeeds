@@ -9,7 +9,7 @@ import android.widget.Toast
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.RecyclerView
 import com.mitkoned.prayerneeds.BoxedBoolean
-import com.mitkoned.prayerneeds.PrayerNeed
+import com.mitkoned.prayerneeds.data.model.PrayerNeed
 import com.mitkoned.prayerneeds.R
 
 class PrayerNeedAdapter (

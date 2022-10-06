@@ -25,6 +25,7 @@ import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.snackbar.Snackbar
 import com.mitkoned.prayerneeds.*
+import com.mitkoned.prayerneeds.data.model.PrayerNeed
 import com.mitkoned.prayerneeds.adapters.PrayerNeedAdapter
 import com.mitkoned.prayerneeds.utilities.*
 import org.json.JSONArray
@@ -271,7 +272,8 @@ class PrayerNeedsActivity : AppCompatActivity() {
                             id = id,
                             description = description,
                             date = date,
-                            answered = answered
+                            answered = answered,
+                            user_id = 1
                         )
 
                         dataPrayerNeedsList.add(loadedPrayerNeed)
@@ -357,7 +359,7 @@ class PrayerNeedsActivity : AppCompatActivity() {
         nextId++
 
         // TODO: NOT FINISHED!!
-        val newItem = PrayerNeed(id = nextId, desc, date = currentDate, answered = false)
+        val newItem = PrayerNeed(id = nextId, desc, date = currentDate, answered = false, user_id = 1)
         dataPrayerNeedsList.add(0, newItem)
         viewPrayerNeedsList.add(0, newItem)
         rvMain.adapter?.notifyItemInserted(0)

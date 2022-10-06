@@ -7,9 +7,13 @@
       android:title="@string/showPrayerNeedsEnteredToday"
       android:visible="false"
       app:iconTint="?android:attr/textColor"
-      app:showAsAction="always" />
+      app:showAsAction="always"/>
+<!--      app:actionViewClass="androidx.appcompat.widget.SwitchCompat"-->
+<!--      app:showAsAction="always|collapseActionView" />-->
 
-<!-- TODO: Test if app:iconTint works in android 9, 10, 11, 12 -->
+<!-- TODO: "Test androidx.appcompat.widget." in app:actionViewClass -->
+
+<!-- TODO: Test if app:iconTint works in android 9, 10, 11, 12, 13, 14 -->
   <item
       android:id="@+id/mi_toggleAnsweredPrayerNeedsVisibility"
       android:title="Toggle answered prayer needs visibility"

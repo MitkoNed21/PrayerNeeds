@@ -1,31 +1,48 @@
 package com.mitkoned.prayerneeds.adapters
 
 import android.view.LayoutInflater
-import android.view.View
 import android.view.ViewGroup
 import android.widget.CheckBox
-import android.widget.TextView
 import android.widget.Toast
-import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.DiffUtil
 import androidx.recyclerview.widget.ListAdapter
 import androidx.recyclerview.widget.RecyclerView
-import com.mitkoned.prayerneeds.BoxedBoolean
 import com.mitkoned.prayerneeds.data.model.PrayerNeed
 import com.mitkoned.prayerneeds.R
 import com.mitkoned.prayerneeds.databinding.LayoutRvPrayerNeedBinding
 import java.text.SimpleDateFormat
-import java.time.Year
 import java.util.*
 
 class PrayerNeedsAdapter (
 //    private val prayerNeeds: MutableList<PrayerNeed>,
-//    private val hidingAnsweredPrayerNeeds: BoxedBoolean
+    private val listener: OnItemClickListener,
+    private val itemRangeInsertedListener: OnItemRangeInsertedListener? = null
 ) : ListAdapter<PrayerNeed, PrayerNeedsAdapter.PrayerNeedViewHolder>(DiffCallback()) {
     inner class PrayerNeedViewHolder(
         private val binding: LayoutRvPrayerNeedBinding
     ) : RecyclerView.ViewHolder(binding.root) {
 //        lateinit var foregroundView: ConstraintLayout
+
+        init {
+            binding.apply {
+                root.setOnClickListener {
+                    val pos = adapterPosition
+                    if (pos != RecyclerView.NO_POSITION) {
+                        val prayerNeed = getItem(pos)
+                        listener.onItemClick(prayerNeed)
+                    }
+                }
+
+                cbAnswered.setOnClickListener {
+                    val pos = adapterPosition
+                    if (pos != RecyclerView.NO_POSITION) {
+                        val prayerNeed = getItem(pos)
+                        listener.onCheckBoxClick(prayerNeed, cbAnswered.isChecked)
+                    }
+                }
+            }
+        }
+
         fun bind(prayerNeed: PrayerNeed) {
             binding.apply {
                 cbAnswered.isChecked = prayerNeed.answered
@@ -47,6 +64,10 @@ class PrayerNeedsAdapter (
         )
 
         val viewHolder = PrayerNeedViewHolder(binding)
+
+        this.registerAdapterDataObserver(
+            DataObserver(itemRangeInsertedListener)
+        )
 
         // TODO: idk????
         // viewHolder.foregroundView = view.findViewById(R.id.cl_prayerNeedForeground)
@@ -82,6 +103,15 @@ class PrayerNeedsAdapter (
         }
     }
 
+    interface OnItemClickListener {
+        fun onItemClick(prayerNeed: PrayerNeed)
+        fun onCheckBoxClick(prayerNeed: PrayerNeed, isChecked: Boolean)
+    }
+
+    interface OnItemRangeInsertedListener {
+        fun onItemRangeInserted()
+    }
+
     class DiffCallback : DiffUtil.ItemCallback<PrayerNeed>() {
         override fun areItemsTheSame(
             oldItem: PrayerNeed, newItem: PrayerNeed
@@ -90,5 +120,14 @@ class PrayerNeedsAdapter (
         override fun areContentsTheSame(
             oldItem: PrayerNeed, newItem: PrayerNeed
         ) = oldItem == newItem
+    }
+
+    class DataObserver(
+        private val onItemRangeInsertedCallback: OnItemRangeInsertedListener? = null
+    ) : RecyclerView.AdapterDataObserver() {
+        override fun onItemRangeInserted(positionStart: Int, itemCount: Int) {
+            super.onItemRangeInserted(positionStart, itemCount)
+            onItemRangeInsertedCallback?.onItemRangeInserted()
+        }
     }
 }

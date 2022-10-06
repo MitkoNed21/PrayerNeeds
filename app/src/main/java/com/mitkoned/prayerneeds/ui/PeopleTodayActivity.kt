@@ -24,6 +24,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialogFragment
 import com.google.android.material.snackbar.BaseTransientBottomBar
 import com.google.android.material.snackbar.Snackbar
 import com.mitkoned.prayerneeds.*
+import com.mitkoned.prayerneeds.data.model.PrayerNeed
 import com.mitkoned.prayerneeds.activities.AllPeopleActivity
 import com.mitkoned.prayerneeds.activities.ViewTodaysPrayerNeedsFullscreenActivity
 import com.mitkoned.prayerneeds.utilities.*
@@ -488,7 +489,8 @@ class PeopleTodayActivity : AppCompatActivity() {
                                 id = id,
                                 description = description,
                                 date = date,
-                                answered = answered
+                                answered = answered,
+                                user_id = 1
                             )
                         )
                     }

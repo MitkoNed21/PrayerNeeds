@@ -6,7 +6,7 @@ import android.view.View
 import androidx.constraintlayout.widget.ConstraintLayout
 import androidx.recyclerview.widget.ItemTouchHelper
 import androidx.recyclerview.widget.RecyclerView
-import com.mitkoned.prayerneeds.adapters.PrayerNeedAdapter
+import com.mitkoned.prayerneeds.adapters.PrayerNeedsAdapter
 import com.mitkoned.prayerneeds.data.model.PrayerNeed
 
 abstract class PrayerNeedSwipeGestures(
@@ -123,13 +123,13 @@ abstract class PrayerNeedSwipeGestures(
 
     override fun onSelectedChanged(viewHolder: RecyclerView.ViewHolder?, actionState: Int) {
         if (viewHolder != null) {
-            val foregroundView = (viewHolder as PrayerNeedAdapter.PrayerNeedViewHolder).foregroundView
+            val foregroundView = viewHolder.itemView.findViewById<ConstraintLayout>(R.id.cl_prayerNeedForeground)
             ItemTouchHelper.Callback.getDefaultUIUtil().onSelected(foregroundView)
         }
     }
 
     override fun clearView(recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder) {
-        val foregroundView = (viewHolder as PrayerNeedAdapter.PrayerNeedViewHolder).foregroundView
+        val foregroundView = viewHolder.itemView.findViewById<ConstraintLayout>(R.id.cl_prayerNeedForeground)
         ItemTouchHelper.Callback.getDefaultUIUtil().clearView(foregroundView)
     }
 
@@ -137,7 +137,7 @@ abstract class PrayerNeedSwipeGestures(
     var prevdX = 0f
     override fun onChildDraw(c: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean)
     {
-        val foregroundView = (viewHolder as PrayerNeedAdapter.PrayerNeedViewHolder).foregroundView
+        val foregroundView = viewHolder.itemView.findViewById<ConstraintLayout>(R.id.cl_prayerNeedForeground)
         val backgroundView = viewHolder.itemView.findViewById<ConstraintLayout>(R.id.cl_prayerNeedBackground)
         
         if (prevdX >= 0 && dX <= 0 ||
@@ -153,7 +153,7 @@ abstract class PrayerNeedSwipeGestures(
                 showedAction = true
             }
         } else {
-            backgroundView.background = ColorDrawable(Color.parseColor("#40ff20"))
+            backgroundView.background = ColorDrawable(Color.parseColor("#8000ff")) //f7a707?
             if (!showedAction) {
                 backgroundView.findViewById<View>(R.id.cl_prayerNeedBackgroundLeft).visibility = View.VISIBLE
                 backgroundView.findViewById<View>(R.id.cl_prayerNeedBackgroundRight).visibility = View.INVISIBLE
@@ -168,7 +168,7 @@ abstract class PrayerNeedSwipeGestures(
 
     override fun onChildDrawOver(c: Canvas, recyclerView: RecyclerView, viewHolder: RecyclerView.ViewHolder, dX: Float, dY: Float, actionState: Int, isCurrentlyActive: Boolean)
     {
-        val foregroundView = (viewHolder as PrayerNeedAdapter.PrayerNeedViewHolder).foregroundView
+        val foregroundView = viewHolder.itemView.findViewById<ConstraintLayout>(R.id.cl_prayerNeedForeground)
         c.translate(dX, 0f)
         c.drawRect(Rect().also {
             it.top = viewHolder.itemView.top
